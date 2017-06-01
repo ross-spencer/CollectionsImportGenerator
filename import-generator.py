@@ -22,8 +22,9 @@ def main():
    #	Handle command line arguments for the script
    parser = argparse.ArgumentParser(description='Generate Archway Import Sheet and Rosetta Ingest CSV from DROID CSV Reports.')
 
-   parser.add_argument('--csv', help='Single DROID CSV to read.', default=False, required=False)
+   parser.add_argument('--csv', help='Single DROID CSV to read.', default=False, required=True)
    parser.add_argument('--over','--overview', help='Create an import overview sheet.', default=False, required=False, action="store_true")
+   parser.add_argument('--ext', '--external', help='Insert data from an arbitrary CSV.', default=False, required=False)
 
    if len(sys.argv)==1:
       parser.print_help()
@@ -34,10 +35,14 @@ def main():
    args = parser.parse_args()
        
    # Creating an import sheet for Archway...
-   if args.csv and not args.over:
+   if args.csv and not args.over and not args.ext:
+      sys.stderr.write("Writing full Archway import sheet.\n")
       importsheetDROIDmapping(args.csv, jsonschema, configfile)
+   elif args.csv and not args.over and args.ext:
+      sys.stderr.write("Writing full Archway import sheet with external metadata.\n")
    # Creating a cover sheet for Archway...
    elif args.csv and args.over :
+      sys.stderr.write("Writing Archway overview sheet.\n")
       createImportOverview(args.csv, configfile)
    # We're not doing anything sensible...
    else:
