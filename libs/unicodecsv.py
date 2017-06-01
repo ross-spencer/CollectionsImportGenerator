@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+import sys
 import csv
 from itertools import izip
 
@@ -109,8 +111,14 @@ class UnicodeReader(object):
         encoding_errors = self.encoding_errors
         float_ = float
         unicode_ = unicode
-        return [(value if isinstance(value, float_) else
-                 unicode_(value, encoding, encoding_errors)) for value in row]
+        try:
+           val = [(value if isinstance(value, float_) else unicode_(value, encoding, encoding_errors)) for value in row]
+        except UnicodeDecodeError as e:
+           #attempt a different encoding...
+           encoding = 'ISO-8859-1'
+           sys.stderr.write(str(e) + "\n")
+           val = [(value if isinstance(value, float_) else unicode_(value, encoding, encoding_errors)) for value in row]
+        return val
 
     def __iter__(self):
         return self
