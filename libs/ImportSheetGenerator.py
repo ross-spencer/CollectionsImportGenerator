@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
-
 import sys
 import ConfigParser
-sys.path.append(r'JsonTableSchema/')
-import JsonTableSchema
 from datetime import datetime
 from droidcsvhandlerclass import *
 
+# Table schema code...
+sys.path.append(r'JsonTableSchema/')
+import JsonTableSchema
+
 class ImportSheetGenerator:
 
-   def __init__(self, droidcsv=False, importschema=False, configfile=False):
-      self.config = ConfigParser.RawConfigParser()
-      
-      if configfile is not False:
+   def __init__(self, droidcsv, importschema, configfile):
+      self.config = ConfigParser.RawConfigParser()      
+      if configfile is not False and configfile is not None:
          self.config.read(configfile)   
-         self.pathmask = self.config.get('additional values', 'pathmask')
-         
+         self.pathmask = self.config.get('additional values', 'pathmask')  
       self.droidcsv = droidcsv
       self.importschema = importschema
       
@@ -95,7 +94,9 @@ class ImportSheetGenerator:
                importcsv = importcsv + ","
 
             importcsv = importcsv.rstrip(',') + "\n"
-               
+         
+         f.close()
+      
          sys.stdout.write(importcsv)
 
    def readDROIDCSV(self):

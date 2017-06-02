@@ -1,4 +1,5 @@
-﻿import unicodecsv
+﻿# -*- coding: utf-8 -*-
+import unicodecsv
 import os.path
 from urlparse import urlparse
 
