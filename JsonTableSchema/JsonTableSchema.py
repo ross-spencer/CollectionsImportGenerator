@@ -116,6 +116,12 @@ class JSONTableSchema(object):
          "json_table_schema_version": self.format_version, "fields": self.fields
       }
 
+   def as_list(self):
+      headers = []
+      for name in self.field_names:
+         headers.append(str(name))
+      return headers
+
    def as_csv_header(self):
       csv_header = ''
       for name in self.field_names:
