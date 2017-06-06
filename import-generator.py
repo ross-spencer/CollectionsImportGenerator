@@ -5,9 +5,10 @@ from libs.ImportOverviewGenerator import ImportOverviewGenerator
 from libs.ImportSheetGenerator import ImportSheetGenerator
 from libs.ExternalCSVHandlerClass import ExternalCSVHandler
 
-def handleExternalCSV(csv, configfile, importschema):
+def handleExternalCSV(csv, importGenerator, configfile, importschema):
    ex = ExternalCSVHandler(configfile, importschema)
-   ex.readExternalCSV(csv)
+   externalCSV = ex.readExternalCSV(csv)
+   importGenerator.setExternalCSV(externalCSV)
    return
          
 def createImportOverview(droidcsv, configfile):
@@ -16,6 +17,9 @@ def createImportOverview(droidcsv, configfile):
 
 def importsheetDROIDmapping(droidcsv, importschema, configfile):
    importgenerator = ImportSheetGenerator(droidcsv, importschema, configfile)
+   return importgenerator
+   
+def createImportCSV(importgenerator):
    importgenerator.droid2archwayimport()
 
 def main():
@@ -42,12 +46,15 @@ def main():
    # Creating an import sheet for Archway...
    if args.csv and not args.over and not args.ext:
       sys.stderr.write("Writing full Archway import sheet.\n")
-      importsheetDROIDmapping(args.csv, jsonschema, configfile)
+      importGenerator = importsheetDROIDmapping(args.csv, jsonschema, configfile)
+      createImportCSV(importGenerator)
    elif args.csv and not args.over and args.ext:
       sys.stderr.write("Writing full Archway import sheet with external metadata.\n")     
       # external mapping is an involved process... it needs full knowledge of
       # two data formats, not least the import sheet layout we require...
-      handleExternalCSV(args.ext, configfile, jsonschema)
+      importGenerator = importsheetDROIDmapping(args.csv, jsonschema, configfile)      
+      handleExternalCSV(args.ext, importGenerator, configfile, jsonschema)
+      createImportCSV(importGenerator)
    # Creating a cover sheet for Archway...
    elif args.csv and args.over :
       sys.stderr.write("Writing Archway overview sheet.\n")

@@ -16,6 +16,9 @@ class NewRow:
    checksum = ""
    path = ""
    rdict = {}
+   
+   def __init__(self):
+      self.rdict = {}   #shares memory if not initialized every call?
 
 class ExternalCSVHandler:
 
@@ -47,7 +50,8 @@ class ExternalCSVHandler:
       self.__getheaders__()
       
       self.__getmappingtable__()
-      
+   
+   # Read the config file which contains various components for mapping data
    def __getconfig__(self):
       sys.stderr.write("Mapping config being read from: " + self.configfile + "\n")
       self.config.read(self.configfile)   
@@ -76,15 +80,16 @@ class ExternalCSVHandler:
       for i in self.importheaders:
          if self.config.has_option(self.mapping, i):            
             mapvalue = self.config.get(self.mapping, i)
-            if mapvalue is not "":
-               self.maphead.append(mapvalue)
+            if mapvalue is not "":               
                if len(mapvalue.split(",")) > 1:
                   for j in mapvalue.split(","):
                      self.rowdict[j] = i
+                     self.maphead.append(j)
                else:
                   self.rowdict[mapvalue] = i
+                  self.maphead.append(mapvalue)
 
-      print self.rowdict
+      sys.stderr.write(str(self.rowdict) + "\n")
 
    # Read the external CSV we want to extract metadata from...
    def readExternalCSV(self, extcsvname):   
@@ -97,7 +102,7 @@ class ExternalCSVHandler:
          if len(exportlist) < 1:
             exportlist = None
          if exportlist is not None:
-            for e in exportlist:                        
+            for e in exportlist: 
                row = NewRow()
                if e[self.checksumcol] != "":
                   row.checksum = e[self.checksumcol]
@@ -108,9 +113,14 @@ class ExternalCSVHandler:
                      data = e[f]
                      if re.match(self.dates, data):
                         data = self.__fixdates__(data)
-                     row.rdict[data] = self.rowdict[f]
-               if row.checksum != "":
-                  augmented.append(row)
+                     if self.rowdict[f] == 'Description':
+                        if data != "":
+                           data = f + ": " + data
+                           row.rdict[data] = self.rowdict[f]
+                     else:
+                        row.rdict[data] = self.rowdict[f]
+                  if row.checksum != "":
+                     augmented.append(row)
       return augmented
       
    # Convert dates from one format to another...
