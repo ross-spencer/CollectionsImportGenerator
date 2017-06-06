@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import re
 import sys
 import unicodecsv
 import ConfigParser
 from os.path import exists
+from datetime import datetime
 
 from droidcsvhandlerclass import *
 
@@ -26,9 +28,11 @@ class ExternalCSVHandler:
    #mapping section in cfg
    mapping = "external mapping"
 
+   #data we want to read from the config file...
    pathcolumn = "PathColumn"
    checksumcolumn = "ChecksumColumn"
    pathmask = "Mask"
+   datepattern = "Date Pattern"
 
    rowdict = {}
    maphead = []
@@ -49,9 +53,14 @@ class ExternalCSVHandler:
       self.config.read(self.configfile)   
       self.pathmask = self.config.get(self.mapconfig, self.pathmask)
       self.checksumcol = self.config.get(self.mapconfig, self.checksumcolumn)      
-      self.pathcol = self.config.get(self.mapconfig, self.pathcolumn)      
+      self.pathcol = self.config.get(self.mapconfig, self.pathcolumn)
+      
+      # access our regular expression for dates...
+      self.userdatepattern = self.config.get(self.mapconfig, self.datepattern)
+      self.dates = re.compile(self.userdatepattern)      
       return
 
+   # Read the import sheet headers from our CSV schema file...
    def __getheaders__(self):
       sys.stderr.write("Import schema being read from: " + self.importschema + "\n")
       f = open(self.importschema, 'rb')        
@@ -60,7 +69,9 @@ class ExternalCSVHandler:
       self.importheaders = importschema.as_list()         
       f.close()
       return
-      
+   
+   # Using the CSV headers, see if there is an entry in the config file
+   # for the information we're receiving in this class. 
    def __getmappingtable__(self):
       for i in self.importheaders:
          if self.config.has_option(self.mapping, i):            
@@ -75,6 +86,7 @@ class ExternalCSVHandler:
 
       print self.rowdict
 
+   # Read the external CSV we want to extract metadata from...
    def readExternalCSV(self, extcsvname):   
       augmented = []    #augmented metadata
       exportlist = None
@@ -93,6 +105,19 @@ class ExternalCSVHandler:
                   row.path = e[self.pathcol].replace(self.pathmask, "")
                for f in e:
                   if f in self.maphead:
-                     row.rdict[e[f]] = self.rowdict[f]
-               augmented.append(row)
+                     data = e[f]
+                     if re.match(self.dates, data):
+                        data = self.__fixdates__(data)
+                     row.rdict[data] = self.rowdict[f]
+               if row.checksum != "":
+                  augmented.append(row)
       return augmented
+      
+   # Convert dates from one format to another...
+   def __fixdates__(self, dates):
+      if self.userdatepattern == "^[1-9]\d?\/\d{2}\/\d{4}$":
+         dateobj = datetime.strptime(dates, '%d/%m/%Y')
+         return dateobj.strftime("%Y-%m-%d")
+      else:
+         sys.stderr.write("No date handler configured for this string: " + dates)
+         return dates
