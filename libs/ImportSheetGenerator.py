@@ -179,6 +179,7 @@ class ImportSheetGenerator:
       if self.externalCSV is not None and self.droidcsv != False and self.importschema != False:
          self.droidlist = self.readDROIDCSV()
          self.maptoimportschema(True)
+         sys.stderr.write("External count: " + str(len(self.externalCSV)) + " DROID Count: " + str(len(self.droidlist)))
       elif self.droidcsv != False and self.importschema != False:
          self.droidlist = self.readDROIDCSV()
          self.maptoimportschema()
