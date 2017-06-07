@@ -127,7 +127,8 @@ class ExternalCSVHandler:
    def __fixdates__(self, dates):
       if self.userdatepattern == "^[1-9]\d?\/\d{2}\/\d{4}$":
          dateobj = datetime.strptime(dates, '%d/%m/%Y')
-         return dateobj.strftime("%Y-%m-%d")
+         #return dateobj.strftime("%Y-%m-%d")
+         return dateobj.strftime("%Y")
       else:
          sys.stderr.write("No date handler configured for this string: " + dates)
          return dates

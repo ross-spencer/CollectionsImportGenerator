@@ -54,16 +54,36 @@ class ImportSheetGenerator:
       temprow = row.rdict
       newrow = {}
       desc = ""
+      
+      open = ""
+      close = ""
+      
       for r in temprow:
          if temprow[r] == 'Description':
             desc = desc + r.encode('utf-8') + " * "          
+         
+         elif temprow[r] == 'Open Year':
+            open = r.encode('utf-8')
+            newrow[r] = open
+            
+         elif temprow[r] == 'Close Year':
+            close = r.encode('utf-8')
+            newrow[r] = close
+            
          else:
             newrow[r] = temprow[r]
             
       if desc != "":
          desc = desc.strip(' * ').encode('utf-8')         
-         newrow[desc] = 'Description'
+         
 
+      if open != '' and close != '':
+         if int(open) > int(close):
+            sys.stderr.write("Dates incorrect open: " + open + " close: " + close + "\n")
+            desc = desc + " * " + "[Dates are generated from the file system and reflect file system parameters]"
+
+      #attach our new description and then add to row...
+      newrow[desc] = 'Description'
       row.rdict = newrow
 
       return row
@@ -115,16 +135,18 @@ class ImportSheetGenerator:
          
             for column in importschemadict['fields']:
                fieldtext = ""
-               entry = False                              
-                              
-               if r is not None:                                
+               entry = False 
+               
+               if r is not None:  
                   for val in r.rdict:                  
-                     if column['name'] == r.rdict[val]:    
+                     if column['name'] == r.rdict[val]:  
                         fieldtext = val
+                        if column['name'] == 'Title':
+                           fieldtext = self.get_title(fieldtext)                 
                         importcsv = importcsv + self.add_csv_value(fieldtext)
                         entry = True
                         break                              
-                                    
+                              
                if entry != True:                                            
                   if self.config.has_option('droid mapping', column['name']):
                      droidfield = self.config.get('droid mapping', column['name'])
@@ -133,6 +155,7 @@ class ImportSheetGenerator:
                         fieldtext = self.get_path(dir)
                      if droidfield == 'NAME':
                         fieldtext = self.get_title(filerow['NAME'])
+                        sys.stderr.write(fieldtext.encode('utf-8') + "\n")
                      if droidfield == 'MD5_HASH':
                         fieldtext = filerow['MD5_HASH']
                      if droidfield == 'SHA1_HASH':
