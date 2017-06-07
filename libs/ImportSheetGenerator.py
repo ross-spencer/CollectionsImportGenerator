@@ -49,6 +49,9 @@ class ImportSheetGenerator:
 
    count = 0
 
+   def splitns(self, value):
+      return value.split(':', 1)[1]
+
    def reorganise_row(self, row):
       self.count+=1
       temprow = row.rdict
@@ -60,14 +63,14 @@ class ImportSheetGenerator:
       
       for r in temprow:
          if temprow[r] == 'Description':
-            desc = desc + r.encode('utf-8') + " * "          
+            desc = desc + self.splitns(r).encode('utf-8') + " * "          
          
          elif temprow[r] == 'Open Year':
-            open = r.encode('utf-8')
+            open = self.splitns(r).encode('utf-8')
             newrow[r] = open
             
          elif temprow[r] == 'Close Year':
-            close = r.encode('utf-8')
+            close = self.splitns(r).encode('utf-8')
             newrow[r] = close
             
          else:
@@ -76,7 +79,6 @@ class ImportSheetGenerator:
       if desc != "":
          desc = desc.strip(' * ').encode('utf-8')         
          
-
       if open != '' and close != '':
          if int(open) > int(close):
             sys.stderr.write("Dates incorrect open: " + open + " close: " + close + "\n")
@@ -140,7 +142,7 @@ class ImportSheetGenerator:
                if r is not None:  
                   for val in r.rdict:                  
                      if column['name'] == r.rdict[val]:  
-                        fieldtext = val
+                        fieldtext = self.splitns(val)
                         if column['name'] == 'Title':
                            fieldtext = self.get_title(fieldtext)                 
                         importcsv = importcsv + self.add_csv_value(fieldtext)

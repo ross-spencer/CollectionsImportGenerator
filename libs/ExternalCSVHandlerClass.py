@@ -103,6 +103,10 @@ class ExternalCSVHandler:
             exportlist = None
          if exportlist is not None:
             for e in exportlist: 
+            
+               #we need to differentiate in case we get non-unique values
+               nscount = 0            
+            
                row = NewRow()
                if e[self.checksumcol] != "":
                   row.checksum = e[self.checksumcol]
@@ -113,11 +117,16 @@ class ExternalCSVHandler:
                      data = e[f]
                      if re.match(self.dates, data):
                         data = self.__fixdates__(data)
+                     # data is data, unless dates, but if dates, append
                      if self.rowdict[f] == 'Description':
                         if data != "":
+                           nscount += 1
                            data = f + ": " + data
+                           data = "ns" + str(nscount) + ":" + data
                            row.rdict[data] = self.rowdict[f]
                      else:
+                        nscount += 1
+                        data = "ns" + str(nscount) + ":" + data
                         row.rdict[data] = self.rowdict[f]
                if row.checksum != "":
                   augmented.append(row)
