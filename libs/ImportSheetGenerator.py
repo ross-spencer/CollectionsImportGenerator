@@ -47,19 +47,24 @@ class ImportSheetGenerator:
    def get_title(self, title):
       return title.rsplit('.', 1)[0].rstrip()  #split once at full-stop (assumptuon 'ext' follows)
 
+   count = 0
+
    def reorganise_row(self, row):
-   
+      self.count+=1
       temprow = row.rdict
       newrow = {}
       desc = ""
       for r in temprow:
          if temprow[r] == 'Description':
-            desc = desc + r.encode('utf-8') + " * "
+            desc = desc + r.encode('utf-8') + " * "          
          else:
             newrow[r] = temprow[r]
             
       if desc != "":
+         desc = desc.strip(' * ').encode('utf-8')         
          newrow[desc] = 'Description'
+
+      row.rdict = newrow
 
       return row
    
@@ -67,8 +72,14 @@ class ImportSheetGenerator:
       for row in self.externalCSV:
          if row.path == path and row.checksum == checksum:
             return self.reorganise_row(row)
-            
-      sys.stderr.write("We didn't find something... " + row.path + " " + row.checksum + "\n")
+      
+      if row.path != path:
+         sys.stderr.write("We didn't find something, path didn't match..." + row.path.encode('utf-8') + " " + path.encode('utf-8') + " " + checksum.encode('utf-8') + "\n")
+         return None
+
+      if row.checksum != checksum:
+         sys.stderr.write("We didn't find something, checksum didn't match... " + row.checksum + " " + row.checksum + "\n")
+         return None
 
    def maptoimportschema(self, externalmapping=False):
       
@@ -104,17 +115,17 @@ class ImportSheetGenerator:
          
             for column in importschemadict['fields']:
                fieldtext = ""
-               entry = False
+               entry = False                              
                               
                if r is not None:                                
                   for val in r.rdict:                  
-                     if column['name'] == r.rdict[val]:                     
+                     if column['name'] == r.rdict[val]:    
                         fieldtext = val
                         importcsv = importcsv + self.add_csv_value(fieldtext)
-                        entry = True     
+                        entry = True
                         break                              
-                  
-               if entry != True:
+                                    
+               if entry != True:                                            
                   if self.config.has_option('droid mapping', column['name']):
                      droidfield = self.config.get('droid mapping', column['name'])
                      if droidfield == 'FILE_PATH':
@@ -137,9 +148,14 @@ class ImportSheetGenerator:
                   importcsv = importcsv + self.add_csv_value(self.config.get('static values', column['name']))
                   entry = True
                
-               if column['name'] == 'Open Year' or column['name'] == 'Close Year':
+               # If we haven't years from an external source, add them here... 
+               if (column['name'] == 'Open Year') and entry != True:
                   importcsv = importcsv + self.add_csv_value(yearopenclosed)
                   entry = True
+                  
+               if (column['name'] == 'Close Year') and entry != True:
+                  importcsv = importcsv + self.add_csv_value(yearopenclosed)
+                  entry = True                  
                
                if entry == False:
                   importcsv = importcsv + self.add_csv_value("")

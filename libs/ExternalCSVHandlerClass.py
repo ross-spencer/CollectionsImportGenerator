@@ -119,8 +119,8 @@ class ExternalCSVHandler:
                            row.rdict[data] = self.rowdict[f]
                      else:
                         row.rdict[data] = self.rowdict[f]
-                  if row.checksum != "":
-                     augmented.append(row)
+               if row.checksum != "":
+                  augmented.append(row)
       return augmented
       
    # Convert dates from one format to another...
