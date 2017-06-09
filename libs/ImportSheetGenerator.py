@@ -63,7 +63,7 @@ class ImportSheetGenerator:
       
       for r in temprow:
          if temprow[r] == 'Description':
-            desc = desc + self.splitns(r).encode('utf-8') + " * "          
+            desc = desc + self.splitns(r).encode('utf-8') + ", "          
          
          elif temprow[r] == 'Open Year':
             open = self.splitns(r).encode('utf-8')
@@ -77,12 +77,12 @@ class ImportSheetGenerator:
             newrow[r] = temprow[r]
             
       if desc != "":
-         desc = desc.strip(' * ').encode('utf-8')         
+         desc = desc.strip(', ').encode('utf-8')         
          
-      if open != '' and close != '':
-         if int(open) > int(close):
-            sys.stderr.write("Dates incorrect open: " + open + " close: " + close + "\n")
-            desc = desc + " * " + "[Dates are generated from the file system and reflect file system parameters]"
+      #if open != '' and close != '':
+      #   if int(open) > int(close):
+      #      sys.stderr.write("Dates incorrect open: " + open + " close: " + close + "\n")
+      #      desc = desc + " * " + "[Dates are generated from the file system and reflect file system parameters]"
 
       #attach our new description and then add to row...
       newrow[desc] = 'Description'
@@ -141,10 +141,12 @@ class ImportSheetGenerator:
                
                if r is not None:  
                   for val in r.rdict:                  
-                     if column['name'] == r.rdict[val]:  
-                        fieldtext = self.splitns(val)
+                     if column['name'] == r.rdict[val]:
+                        if column['name'] != 'Description':
+                           val = self.splitns(val)
+                        fieldtext = val                        
                         if column['name'] == 'Title':
-                           fieldtext = self.get_title(fieldtext)                 
+                           fieldtext = self.get_title(fieldtext)
                         importcsv = importcsv + self.add_csv_value(fieldtext)
                         entry = True
                         break                              
