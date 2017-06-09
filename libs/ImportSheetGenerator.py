@@ -79,10 +79,10 @@ class ImportSheetGenerator:
       if desc != "":
          desc = desc.strip(', ').encode('utf-8')         
          
-      #if open != '' and close != '':
-      #   if int(open) > int(close):
-      #      sys.stderr.write("Dates incorrect open: " + open + " close: " + close + "\n")
-      #      desc = desc + " * " + "[Dates are generated from the file system and reflect file system parameters]"
+      if open != '' and close != '':
+         if int(open) > int(close):
+            sys.stderr.write("Dates incorrect open: " + open + " close: " + close + "\n")
+            desc = desc + " * " + "[Dates are generated from the file system and reflect file system parameters]"
 
       #attach our new description and then add to row...
       newrow[desc] = 'Description'
