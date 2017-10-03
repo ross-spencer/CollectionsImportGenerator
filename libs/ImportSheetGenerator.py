@@ -11,6 +11,7 @@ import JsonTableSchema
 class ImportSheetGenerator:
 
    def __init__(self, droidcsv, importschema, configfile):
+      self.externalCSV = None
       self.config = ConfigParser.RawConfigParser()      
       if configfile is not False and configfile is not None:
          self.config.read(configfile)   
