@@ -116,7 +116,6 @@ class UnicodeReader(object):
         except UnicodeDecodeError as e:
            #attempt a different encoding...
            encoding = 'ISO-8859-1'
-           sys.stderr.write(str(e) + "\n")
            val = [(value if isinstance(value, float_) else unicode_(value, encoding, encoding_errors)) for value in row]
         return val
 

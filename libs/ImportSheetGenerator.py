@@ -160,7 +160,6 @@ class ImportSheetGenerator:
                         fieldtext = self.get_path(dir)
                      if droidfield == 'NAME':
                         fieldtext = self.get_title(filerow['NAME'])
-                        sys.stderr.write(fieldtext.encode('utf-8') + "\n")
                      if droidfield == 'MD5_HASH':
                         fieldtext = filerow['MD5_HASH']
                      if droidfield == 'SHA1_HASH':
