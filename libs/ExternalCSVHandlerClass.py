@@ -36,6 +36,7 @@ class ExternalCSVHandler:
    checksumcolumn = "ChecksumColumn"
    pathmask = "Mask"
    datepattern = "Date Pattern"
+   desctext = "descriptiontext"
 
    rowdict = {}
    maphead = []
@@ -58,6 +59,7 @@ class ExternalCSVHandler:
       self.pathmask = self.config.get(self.mapconfig, self.pathmask)
       self.checksumcol = self.config.get(self.mapconfig, self.checksumcolumn)      
       self.pathcol = self.config.get(self.mapconfig, self.pathcolumn)
+      self.descriptiontext = self.config.get(self.mapping, self.desctext)
       
       # access our regular expression for dates...
       self.userdatepattern = self.config.get(self.mapconfig, self.datepattern)
@@ -103,10 +105,8 @@ class ExternalCSVHandler:
             exportlist = None
          if exportlist is not None:
             for e in exportlist: 
-            
                #we need to differentiate in case we get non-unique values
                nscount = 0            
-            
                row = NewRow()
                if e[self.checksumcol] != "":
                   row.checksum = e[self.checksumcol]
@@ -124,14 +124,46 @@ class ExternalCSVHandler:
                            data = f + ": " + data
                            data = "ns" + str(nscount) + ":" + data
                            row.rdict[data] = self.rowdict[f]
+						
                      else:
                         nscount += 1
                         data = "ns" + str(nscount) + ":" + data
                         row.rdict[data] = self.rowdict[f]
                if row.checksum != "":
                   augmented.append(row)
-      return augmented
+
+      return self.__fixdescription__(augmented)
+
+   def splitns(self, value):
+      return value.split(':', 1)[1]
       
+   def __fixdescription__(self, aug):
+      for row in aug:
+         newrow = {}
+         desc = ""
+         temprow = row.rdict
+         for r in temprow:
+            if temprow[r] == 'Description':
+               desc = desc + self.splitns(r).encode('utf-8') + ". "
+            elif temprow[r] == 'Open Year':
+               opendate = self.splitns(r).encode('utf-8')
+               newrow[r] = opendate            
+            elif temprow[r] == 'Close Year':
+               close = self.splitns(r).encode('utf-8')
+               newrow[r] = close
+            else:
+               newrow[r] = temprow[r]
+
+         if opendate != '' and close != '':
+            if int(opendate) > int(close):
+               sys.stderr.write("Dates incorrect open: " + opendate + " close: " + close + "\n")
+
+         if desc != '':
+            desc = desc + self.descriptiontext
+            newrow[desc] = 'Description'
+         row.rdict = newrow
+      return aug
+
    # Convert dates from one format to another...
    def __fixdates__(self, dates):
       if self.userdatepattern == "^[1-9]\d?\/\d{2}\/\d{4}$":

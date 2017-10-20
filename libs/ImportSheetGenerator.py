@@ -52,49 +52,11 @@ class ImportSheetGenerator:
 
    def splitns(self, value):
       return value.split(':', 1)[1]
-
-   def reorganise_row(self, row):
-      self.count+=1
-      temprow = row.rdict
-      newrow = {}
-      desc = ""
-      
-      open = ""
-      close = ""
-      
-      for r in temprow:
-         if temprow[r] == 'Description':
-            desc = desc + self.splitns(r).encode('utf-8') + ", "          
-         
-         elif temprow[r] == 'Open Year':
-            open = self.splitns(r).encode('utf-8')
-            newrow[r] = open
-            
-         elif temprow[r] == 'Close Year':
-            close = self.splitns(r).encode('utf-8')
-            newrow[r] = close
-            
-         else:
-            newrow[r] = temprow[r]
-            
-      if desc != "":
-         desc = desc.strip(', ').encode('utf-8')         
-         
-      if open != '' and close != '':
-         if int(open) > int(close):
-            sys.stderr.write("Dates incorrect open: " + open + " close: " + close + "\n")
-            desc = desc + " * " + "[Dates are generated from the file system and reflect file system parameters]"
-
-      #attach our new description and then add to row...
-      newrow[desc] = 'Description'
-      row.rdict = newrow
-
-      return row
    
    def get_external_row(self, checksum, path):
       for row in self.externalCSV:
          if row.path == path and row.checksum == checksum:
-            return self.reorganise_row(row)
+            return row
       
       if row.path != path:
          sys.stderr.write("We didn't find something, path didn't match..." + row.path.encode('utf-8') + " " + path.encode('utf-8') + " " + checksum.encode('utf-8') + "\n")
