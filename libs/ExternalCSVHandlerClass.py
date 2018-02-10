@@ -129,7 +129,7 @@ class ExternalCSVHandler:
                         row.path = e[self.pathcol].replace(self.pathmask, "")
                     for f in e:
                         if f in self.maphead:
-                            data = e[f]
+                            data = e[f].strip() # remove trailing ws early
                             if re.match(self.dates, data):
                                 data = self.__fixdates__(data)
                             # data is data, unless dates, but if dates, append
@@ -139,7 +139,6 @@ class ExternalCSVHandler:
                                     data = f + ": " + data
                                     data = "ns" + str(nscount) + ":" + data
                                     row.rdict[data] = self.rowdict[f]
-
                             else:
                                 nscount += 1
                                 data = "ns" + str(nscount) + ":" + data
@@ -152,8 +151,10 @@ class ExternalCSVHandler:
     def splitns(self, value):
         return value.split(':', 1)[1]
 
-    def __fixdescription__(self, aug):
-        for row in aug:
+    def __fixdescription__(self, augmented_list):
+
+        for row in augmented_list:
+
             newrow = {}
             desc = ""
             title = ""
@@ -164,7 +165,6 @@ class ExternalCSVHandler:
             close = ''
 
             for r in temprow:
-
                 if temprow[r] == 'Description':
                     desc = desc + self.splitns(r).encode('utf-8') + ". "
                 elif temprow[r] == 'Open Year':
@@ -187,7 +187,8 @@ class ExternalCSVHandler:
                 newrow[desc] = 'Description'
 
             row.rdict = newrow
-        return aug
+            
+        return augmented_list
 
     # Convert dates from one format to another...
     def __fixdates__(self, dates):
