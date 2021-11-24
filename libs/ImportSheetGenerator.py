@@ -67,7 +67,7 @@ class ImportSheetGenerator:
                checksum.encode('utf-8') + "\n")
             return None
 
-        if row.checksum != checksum:
+        if row.checksum.upper() != checksum:
             sys.stderr.write(
                 "We didn't find something, checksum didn't match... " + \
                 row.checksum + " " + row.checksum + "\n")
@@ -96,9 +96,11 @@ class ImportSheetGenerator:
                     if 'FILE_PATH' in filerow:
                         path = self.get_path(filerow['FILE_PATH'])
                     if 'MD5_HASH' in filerow:
-                        hash = filerow['MD5_HASH']
+                        hash = filerow['MD5_HASH'].upper()
                     elif 'SHA1_HASH' in filerow:
-                        hash = filerow['SHA1_HASH']
+                        hash = filerow['SHA1_HASH'].upper()
+                    elif 'SHA256_HASH' in filerow:
+                        hash = filerow['SHA256_HASH'].upper()
 
                     r = self.get_external_row(hash, path)
 
@@ -137,6 +139,8 @@ class ImportSheetGenerator:
                                 fieldtext = filerow['MD5_HASH']
                             if droidfield == 'SHA1_HASH':
                                 fieldtext = filerow['SHA1_HASH']
+                            if droidfield == 'SHA256_HASH':
+							    fieldtext = filerow['SHA256_HASH']
                             if droidfield == 'LAST_MODIFIED':
                                 if self.config.has_option('additional values',\
                                  'descriptiontext'):
