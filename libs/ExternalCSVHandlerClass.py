@@ -175,13 +175,13 @@ class ExternalCSVHandler:
                     newrow[r] = close
                 else:
                     newrow[r] = temprow[r]
-
+            '''
             if opendate != '' and close != '':
                 if int(opendate) > int(close):
                     sys.stderr.write(
                         "Dates incorrect open: " + opendate + " close: " + \
                         close + "\n")
-
+			'''
             if desc != '' and self.descriptiontext != None:
                 desc = desc + self.descriptiontext
                 newrow[desc] = 'Description'
