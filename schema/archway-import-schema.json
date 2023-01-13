@@ -5,173 +5,203 @@
 	 "standard" : "http://dataprotocols.org/json-table-schema/",
     "fields": [
         { 
-            "name": "Missing Type",
+            "name": "MissingReason",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Missing Comment",
+            "name": "MissingComment",
+            "description": "A description of the field we're describing here.",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+		{
+            "name": "AgencyIdentifierScheme",
+            "description": "AgencyIdentifierScheme",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+		{
+            "name": "Language",
+            "description": "Language from agency",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+		{
+            "name": "AuthenticityIntegrity",
+            "description": "AuthenticityIntegrity",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+        {
+            "name": "item-agy-transferring-reference",
+            "description": "Agency Code",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+        {
+            "name": "item-ser-actual-reference",
+            "description": "Actual Series",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+        {
+            "name": "BoxNumber",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Agency",
+            "name": "PositionReference",
+            "description": "Item No.",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+        {
+            "name": "RecordNumber",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Actual Series",
+            "name": "PartNumber",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Container",
+            "name": "SepFlag",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Box No.",
+            "name": "SepNumber",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Item No.",
+            "name": "Name",
+            "description": "Title",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+        {
+            "name": "YearStartQualifier",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Record No.",
+            "name": "YearStart",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Part No.",
+            "name": "YearEndQualifier",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Sep Flag",
+            "name": "YearEnd",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Sep No.",
+            "name": "ContentRestrictionStatus",
+            "description": "Content Restriction Status",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+        {
+            "name": "ContentRestrictionExpiryType",
+            "description": "Content Restriction Expiry Type",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+        {
+            "name": "ContentRestrictionExpiryYear",
+            "description": "A description of the field we're describing here.",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+		{
+            "name": "ContentRestrictionAutoExpiry",
+            "description": "ContentRestrictionAutoExpiry",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+		{
+            "name": "MetadataRestrictionStatus",
+            "description": "Metadata Restriction Status",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+		{
+            "name": "MetadataRestrictionExpiryType",
+            "description": "MetadataRestrictionExpiryType",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+		{
+            "name": "MetadataRestrictionExpiryYear",
+            "description": "MetadataRestrictionExpiryYear",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+		{
+            "name": "MetadataRestrictionAutoExpiry",
+            "description": "MetadataRestrictionAutoExpiry",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+        {
+            "name": "IssuableStatus",
+            "description": "Preservation Status",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+        {
+            "name": "RecordNumberAlternative",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Sub-series",
+            "name": "FormerArchivesReference",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Prefix",
-            "description": "A description of the field we're describing here.",
+            "name": "ContentType",
+            "description": "Record Type",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Title",
-            "description": "A description of the field we're describing here.",
+            "name": "AdditionalDescriptionItem",
+            "description": "Description",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Open Year Qualifier",
-            "description": "A description of the field we're describing here.",
+            "name": "EntityType",
+            "description": "Item Level",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+		{
+            "name": "ItemLevel",
+            "description": "Item Level",
+            "type": "http://www.w3.org/2001/XMLSchema#string"
+        },
+		{
+            "name": "Current",
+            "description": "Current",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Open Year",
-            "description": "A description of the field we're describing here.",
+            "name": "item-acc-part-of-reference",
+            "description": "Accession Number",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Close Year Qualifier",
-            "description": "A description of the field we're describing here.",
+            "name": "RepositoryReference",
+            "description": "Repository Reference",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
         {
-            "name": "Close Year",
-            "description": "A description of the field we're describing here.",
+            "name": "HoldingsLocation",
+            "description": "Repository",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
-        {
-            "name": "Restriction Status",
-            "description": "A description of the field we're describing here.",
+		{
+            "name": "RulesUsed",
+            "description": "RulesUsed",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
-        {
-            "name": "Restriction Expiry",
-            "description": "A description of the field we're describing here.",
+		{
+            "name": "DocumentationStandard",
+            "description": "DocumentationStandard",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         },
-        {
-            "name": "Restriction Expiry Year",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Preservation",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Alternative Record No.",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Former Archives Reference",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Record Type",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Description",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Public View",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "PV Expiry",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "PV Expiry Year",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Item Level",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Accession No.",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Repository Reference",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Final Series",
-            "description": "A description of the field we're describing here.",
-            "type": "http://www.w3.org/2001/XMLSchema#string"
-        },
-        {
-            "name": "Repository",
-            "description": "A description of the field we're describing here.",
+		{
+            "name": "ProvenanceNote",
+            "description": "ProvenanceNote",
             "type": "http://www.w3.org/2001/XMLSchema#string"
         }
     ]
