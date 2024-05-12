@@ -1,0 +1,24 @@
+[project]
+# For more information on package metadata see:
+#
+#   * https://packaging.python.org/specifications/core-metadata/
+#
+# For even greater information on this file, see the pypa/sampleproject:
+#
+#   * https://github.com/pypa/sampleproject/blob/fc8d83efd5749853507be959d858629d0aaf5c6e/pyproject.toml
+#
+
+name = "collections-import"
+version = "0.0.0"
+requires-python = ">=3.9"
+
+dependencies = [
+  # e.g. "package1==6.0.0",
+]
+
+[project.scripts]
+template = "src.collections_import.collections_import:main"
+
+[build-system]
+requires = ["setuptools>=69.5.1", "wheel"]
+build-backend = "setuptools.build_meta"
