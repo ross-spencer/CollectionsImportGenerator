@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 import sys
-import ConfigParser
+import configparser as ConfigParser
 from datetime import datetime
-from droidcsvhandlerclass import *
+
+try:
+    from droidcsvhandlerclass import *
+except ModuleNotFoundError:
+    from src.collections_import.droidcsvhandlerclass import *
 
 # Table schema code...
 sys.path.append(r'JsonTableSchema/')
@@ -140,7 +144,7 @@ class ImportSheetGenerator:
                             if droidfield == 'SHA1_HASH':
                                 fieldtext = filerow['SHA1_HASH']
                             if droidfield == 'SHA256_HASH':
-							    fieldtext = filerow['SHA256_HASH']
+                                fieldtext = filerow['SHA256_HASH']
                             if droidfield == 'LAST_MODIFIED':
                                 if self.config.has_option('additional values',\
                                  'descriptiontext'):

@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import ConfigParser
-from droidcsvhandlerclass import *
+import configparser as ConfigParser
+
+try:
+    from droidcsvhandlerclass import *
+except ModuleNotFoundError:
+    from src.collections_import.droidcsvhandlerclass import *
 
 
 class ImportOverviewGenerator:

@@ -51,8 +51,8 @@ def _stringify(s, encoding, errors):
 def _stringify_list(l, encoding, errors='strict'):
     try:
         return [_stringify(s, encoding, errors) for s in iter(l)]
-    except TypeError, e:
-        raise csv.Error(str(e))
+    except TypeError as err:
+        raise csv.Error(str(err))
 
 
 def _unicodify(s, encoding):

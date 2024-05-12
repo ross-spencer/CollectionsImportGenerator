@@ -1,8 +1,15 @@
 ﻿# -*- coding: utf-8 -*-
-import unicodecsv
 import os.path
-from urlparse import urlparse
+import urllib.parse as urlparse
 
+try:
+    import unicodecsv
+except ModuleNotFoundError:
+    try:
+        import src.collections_import.unicodecsv
+    except ImportError:
+        # TODO: correct unicodecsv import errors...
+        pass
 
 class genericCSVHandler():
 

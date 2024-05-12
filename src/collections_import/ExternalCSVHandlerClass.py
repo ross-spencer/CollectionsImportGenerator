@@ -1,12 +1,23 @@
 # -*- coding: utf-8 -*-
 import re
 import sys
-import unicodecsv
-import ConfigParser
+import configparser as ConfigParser
 from os.path import exists
 from datetime import datetime
 
-from droidcsvhandlerclass import *
+try:
+    from droidcsvhandlerclass import *
+except ModuleNotFoundError:
+    from src.collections_import.droidcsvhandlerclass import *
+
+try:
+    import unicodecsv
+except ModuleNotFoundError:
+    try:
+        import src.collections_import.unicodecsv
+    except ImportError:
+        # TODO: correct unicodecsv import errors...
+        pass
 
 # Table schema code...
 sys.path.append(r'JsonTableSchema/')
@@ -187,7 +198,7 @@ class ExternalCSVHandler:
                 newrow[desc] = 'Description'
 
             row.rdict = newrow
-            
+
         return augmented_list
 
     # Convert dates from one format to another...
