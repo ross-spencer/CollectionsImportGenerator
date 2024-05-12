@@ -1,10 +1,10 @@
-{    
+{
     "title": "Archives New Zealand - Archway Import Sheet Schema",
     "description": "Draft schema for validating CSV files for import into Archway at Archives New Zealand.",
 	 "validator": "http://csvlint.io/",
 	 "standard" : "http://dataprotocols.org/json-table-schema/",
     "fields": [
-        { 
+        {
             "name": "MissingReason",
             "description": "A description of the field we're describing here.",
             "type": "http://www.w3.org/2001/XMLSchema#string"
