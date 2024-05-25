@@ -65,24 +65,29 @@ class ImportSheetGenerator:
     def splitns(self, value):
         return value.split(":", 1)[1]
 
-    def get_external_row(self, checksum, path):
+    def get_external_row(self, droid_checksum, droid_path):
+        """Get a row of data from an external CSV by matching it
+        against a DROID path.
+        """
         for row in self.externalCSV:
-            if row.path == path and row.checksum == checksum:
-                return row
-
-        if row.path != path:
-            logging.error(
-                "we didn't find something, path didn't match: %s",
-                f"{row.path} {path} {checksum}",
-            )
-            return None
-
-        if row.checksum.upper() != checksum:
-            logging.error(
-                "we didn't find something, checksum didn't match: %s",
-                f"{row.checksum} {row.checksum}",
-            )
-            return None
+            if row.path != droid_path:
+                continue
+            if row.checksum.lower() != droid_checksum:
+                logging.error(
+                    "found path: '%s' <> '%s' but checksums didn't match: %s <> %s",
+                    row.path,
+                    droid_path,
+                    row.checksum,
+                    droid_checksum,
+                )
+                continue
+            return row
+        logging.error(
+            "can't find droid path in external CSV: '%s' (%s)",
+            droid_path,
+            droid_checksum,
+        )
+        return None
 
     def maptoimportschema(self, externalmapping=False):
         if self.importschema is not False:
@@ -101,17 +106,16 @@ class ImportSheetGenerator:
 
                 # First, retrieve a matching row from our external CSV...
                 if externalmapping is True:
-                    path = ""
+                    droid_path = ""
                     if "FILE_PATH" in filerow:
-                        path = self.get_path(filerow["FILE_PATH"])
+                        droid_path = self.get_path(filerow["FILE_PATH"])
                     if "MD5_HASH" in filerow:
-                        hash = filerow["MD5_HASH"].upper()
+                        droid_hash = filerow["MD5_HASH"].lower()
                     elif "SHA1_HASH" in filerow:
-                        hash = filerow["SHA1_HASH"].upper()
+                        droid_hash = filerow["SHA1_HASH"].lower()
                     elif "SHA256_HASH" in filerow:
-                        hash = filerow["SHA256_HASH"].upper()
-
-                    r = self.get_external_row(hash, path)
+                        droid_hash = filerow["SHA256_HASH"].lower()
+                    r = self.get_external_row(droid_hash, droid_path)
 
                 # Extract year from file modified date for open and closed year
                 yearopenclosed = self.retrieve_year_from_modified_date(
