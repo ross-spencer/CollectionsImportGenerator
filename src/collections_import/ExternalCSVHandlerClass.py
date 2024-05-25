@@ -7,12 +7,14 @@ from os.path import exists
 
 try:
     from droidcsvhandlerclass import *
+    from JsonTableSchema import JsonTableSchema
 except ModuleNotFoundError:
-    from src.collections_import.droidcsvhandlerclass import *
-
-# Table schema code...
-sys.path.append(r"JsonTableSchema/")
-import JsonTableSchema
+    try:
+        from src.collections_import.droidcsvhandlerclass import *
+        from src.collections_import.JsonTableSchema import JsonTableSchema
+    except ModuleNotFoundError:
+        from collections_import.droidcsvhandlerclass import *
+        from collections_import.JsonTableSchema import JsonTableSchema
 
 
 class NewRow:

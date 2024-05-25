@@ -7,15 +7,15 @@ from datetime import datetime
 
 try:
     from droidcsvhandlerclass import *
+    from JsonTableSchema import JsonTableSchema
 except ModuleNotFoundError:
     try:
         from src.collections_import.droidcsvhandlerclass import *
+        from src.collections_import.JsonTableSchema import JsonTableSchema
     except ModuleNotFoundError:
         from collections_import.droidcsvhandlerclass import *
+        from collections_import.JsonTableSchema import JsonTableSchema
 
-# Table schema code...
-sys.path.append(r"JsonTableSchema/")
-import JsonTableSchema
 
 logger = logging.getLogger(__name__)
 
