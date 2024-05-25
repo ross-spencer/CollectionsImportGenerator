@@ -1,26 +1,17 @@
 # -*- coding: utf-8 -*-
+import configparser as ConfigParser
 import re
 import sys
-import configparser as ConfigParser
-from os.path import exists
 from datetime import datetime
+from os.path import exists
 
 try:
     from droidcsvhandlerclass import *
 except ModuleNotFoundError:
     from src.collections_import.droidcsvhandlerclass import *
 
-try:
-    import unicodecsv
-except ModuleNotFoundError:
-    try:
-        import src.collections_import.unicodecsv
-    except ImportError:
-        # TODO: correct unicodecsv import errors...
-        pass
-
 # Table schema code...
-sys.path.append(r'JsonTableSchema/')
+sys.path.append(r"JsonTableSchema/")
 import JsonTableSchema
 
 
@@ -34,7 +25,6 @@ class NewRow:
 
 
 class ExternalCSVHandler:
-
     # place to store cfg loc
     configfile = False
 
@@ -72,30 +62,25 @@ class ExternalCSVHandler:
 
     # Read the config file which contains various components for mapping data
     def __getconfig__(self):
-        sys.stderr.write(
-            "Mapping config being read from: " + self.configfile + "\n")
+        sys.stderr.write("Mapping config being read from: " + self.configfile + "\n")
         self.config.read(self.configfile)
 
         # retrieve values...
         self.pathmask = self.__checkconfig__(self.mapconfig, self.pathmask)
-        self.checksumcol = self.__checkconfig__(
-            self.mapconfig, self.checksumcolumn)
+        self.checksumcol = self.__checkconfig__(self.mapconfig, self.checksumcolumn)
         self.pathcol = self.__checkconfig__(self.mapconfig, self.pathcolumn)
-        self.descriptiontext = self.__checkconfig__(
-            self.mapping, self.desctext)
+        self.descriptiontext = self.__checkconfig__(self.mapping, self.desctext)
 
         # access our regular expression for dates...
-        self.userdatepattern = self.__checkconfig__(
-            self.mapconfig, self.datepattern)
+        self.userdatepattern = self.__checkconfig__(self.mapconfig, self.datepattern)
         if self.userdatepattern is not None:
             self.dates = re.compile(self.userdatepattern)
         return
 
     # Read the import sheet headers from our CSV schema file...
     def __getheaders__(self):
-        sys.stderr.write(
-            "Import schema being read from: " + self.importschema + "\n")
-        f = open(self.importschema, 'rb')
+        sys.stderr.write("Import schema being read from: " + self.importschema + "\n")
+        f = open(self.importschema, "rb")
         importschemajson = f.read()
         importschema = JsonTableSchema.JSONTableSchema(importschemajson)
         self.importheaders = importschema.as_list()
@@ -108,7 +93,7 @@ class ExternalCSVHandler:
         for i in self.importheaders:
             if self.config.has_option(self.mapping, i):
                 mapvalue = self.config.get(self.mapping, i)
-                if mapvalue is not "":
+                if mapvalue != "":
                     if len(mapvalue.split(",")) > 1:
                         for j in mapvalue.split(","):
                             self.rowdict[j] = i
@@ -117,7 +102,9 @@ class ExternalCSVHandler:
                         self.rowdict[mapvalue] = i
                         self.maphead.append(mapvalue)
 
-        sys.stderr.write("Mapped fields ({external field: import field}): %s\n" % self.rowdict)
+        sys.stderr.write(
+            "Mapped fields ({external field: import field}): %s\n" % self.rowdict
+        )
 
     # Read the external CSV we want to extract metadata from...
     def readExternalCSV(self, extcsvname):
@@ -140,11 +127,11 @@ class ExternalCSVHandler:
                         row.path = e[self.pathcol].replace(self.pathmask, "")
                     for f in e:
                         if f in self.maphead:
-                            data = e[f].strip() # remove trailing ws early
+                            data = e[f].strip()  # remove trailing ws early
                             if re.match(self.dates, data):
                                 data = self.__fixdates__(data)
                             # data is data, unless dates, but if dates, append
-                            if self.rowdict[f] == 'Description':
+                            if self.rowdict[f] == "Description":
                                 if data != "":
                                     nscount += 1
                                     data = f + ": " + data
@@ -160,42 +147,39 @@ class ExternalCSVHandler:
         return self.__fixdescription__(augmented)
 
     def splitns(self, value):
-        return value.split(':', 1)[1]
+        return value.split(":", 1)[1]
 
     def __fixdescription__(self, augmented_list):
-
         for row in augmented_list:
-
             newrow = {}
             desc = ""
-            title = ""
             temprow = row.rdict
 
             # Declare these early to work with them below.
-            opendate = ''
-            close = ''
+            opendate = ""
+            close = ""
 
             for r in temprow:
-                if temprow[r] == 'Description':
-                    desc = desc + self.splitns(r).encode('utf-8') + ". "
-                elif temprow[r] == 'Open Year':
-                    opendate = self.splitns(r).encode('utf-8')
+                if temprow[r] == "Description":
+                    desc = desc + self.splitns(r).encode("utf-8") + ". "
+                elif temprow[r] == "Open Year":
+                    opendate = self.splitns(r).encode("utf-8")
                     newrow[r] = opendate
-                elif temprow[r] == 'Close Year':
-                    close = self.splitns(r).encode('utf-8')
+                elif temprow[r] == "Close Year":
+                    close = self.splitns(r).encode("utf-8")
                     newrow[r] = close
                 else:
                     newrow[r] = temprow[r]
-            '''
+            """
             if opendate != '' and close != '':
                 if int(opendate) > int(close):
                     sys.stderr.write(
                         "Dates incorrect open: " + opendate + " close: " + \
                         close + "\n")
-			'''
-            if desc != '' and self.descriptiontext != None:
+			"""
+            if desc != "" and self.descriptiontext is not None:
                 desc = desc + self.descriptiontext
-                newrow[desc] = 'Description'
+                newrow[desc] = "Description"
 
             row.rdict = newrow
 
@@ -204,10 +188,9 @@ class ExternalCSVHandler:
     # Convert dates from one format to another...
     def __fixdates__(self, dates):
         if self.userdatepattern == "^[1-9]\d?\/\d{2}\/\d{4}$":
-            dateobj = datetime.strptime(dates, '%d/%m/%Y')
+            dateobj = datetime.strptime(dates, "%d/%m/%Y")
             # return dateobj.strftime("%Y-%m-%d")
             return dateobj.strftime("%Y")
         else:
-            sys.stderr.write(
-                "No date handler configured for this string: " + dates)
+            sys.stderr.write("No date handler configured for this string: " + dates)
             return dates

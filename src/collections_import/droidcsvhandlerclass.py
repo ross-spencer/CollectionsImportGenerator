@@ -1,18 +1,11 @@
-﻿# -*- coding: utf-8 -*-
+﻿"""DROID CSV Handling class."""
+
+import csv
 import os.path
-import urllib.parse as urlparse
+from urllib.parse import urlparse
 
-try:
-    import unicodecsv
-except ModuleNotFoundError:
-    try:
-        import src.collections_import.unicodecsv
-    except ImportError:
-        # TODO: correct unicodecsv import errors...
-        pass
 
-class genericCSVHandler():
-
+class genericCSVHandler:
     def __getCSVheaders__(self, csvcolumnheaders):
         header_list = []
         for header in csvcolumnheaders:
@@ -26,10 +19,10 @@ class genericCSVHandler():
         csvlist = None
         if os.path.isfile(csvfname):
             csvlist = []
-            with open(csvfname, 'rb') as csvfile:
-                csvreader = unicodecsv.reader(csvfile)
-                for row in csvreader:
-                    if csvreader.line_num == 1:		# not zero-based index
+            with open(csvfname, "r") as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter=",", quotechar='"')
+                for row in csv_reader:
+                    if csv_reader.line_num == 1:  # not zero-based index
                         header_list = self.__getCSVheaders__(row)
                         columncount = len(header_list)
                     else:
@@ -42,8 +35,7 @@ class genericCSVHandler():
         return csvlist
 
 
-class droidCSVHandler():
-
+class droidCSVHandler:
     # returns droidlist type
 
     def readDROIDCSV(self, droidcsvfname):
@@ -52,33 +44,33 @@ class droidCSVHandler():
         return self.csv
 
     def removecontainercontents(self, droidlist):
-        newlist = []   # naive remove causes loop to skip items
+        newlist = []  # naive remove causes loop to skip items
         for row in droidlist:
-            uris = self.getURIScheme(row['URI'])
-            if self.getURIScheme(row['URI']) == 'file':
+            self.getURIScheme(row["URI"])
+            if self.getURIScheme(row["URI"]) == "file":
                 newlist.append(row)
         return newlist
 
     def removefolders(self, droidlist):
         # TODO: We can generate counts here and store in member vars
-        newlist = []   # naive remove causes loop to skip items
+        newlist = []  # naive remove causes loop to skip items
         for i, row in enumerate(droidlist):
-            if row['TYPE'] != 'Folder':
+            if row["TYPE"] != "Folder":
                 newlist.append(row)
         return newlist
 
     def retrievefolderlist(self, droidlist):
         newlist = []
         for row in droidlist:
-            if row['TYPE'] == 'Folder':
-                newlist.append(row['FILE_PATH'])
+            if row["TYPE"] == "Folder":
+                newlist.append(row["FILE_PATH"])
         return newlist
 
     def retrievefoldernames(self, droidlist):
         newlist = []
         for row in droidlist:
-            if row['TYPE'] == 'Folder':
-                newlist.append(row['NAME'])
+            if row["TYPE"] == "Folder":
+                newlist.append(row["NAME"])
         return newlist
 
     def getURIScheme(self, url):
