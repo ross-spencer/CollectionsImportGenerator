@@ -1,9 +1,13 @@
-# -*- coding: utf-8 -*-
+"""External CSV handler."""
+
 import configparser as ConfigParser
+import logging
 import re
 import sys
 from datetime import datetime
 from os.path import exists
+
+# pylint: disable=R0801
 
 try:
     from droidcsvhandlerclass import *
@@ -15,6 +19,8 @@ except ModuleNotFoundError:
     except ModuleNotFoundError:
         from collections_import.droidcsvhandlerclass import *
         from collections_import.JsonTableSchema import JsonTableSchema
+
+logger = logging.getLogger(__name__)
 
 
 class NewRow:
@@ -52,64 +58,66 @@ class ExternalCSVHandler:
         self.configfile = configfile
         self.importschema = importschema
 
-        self.__getconfig__()
-        self.__getheaders__()
+        self.get_import_configuration()
+        self.get_import_table_headers()
 
-        self.__getmappingtable__()
+        self.get_mappings()
 
     def __checkconfig__(self, section, name):
         if self.config.has_option(section, name):
             var = self.config.get(section, name)
             return var
 
-    # Read the config file which contains various components for mapping data
-    def __getconfig__(self):
-        sys.stderr.write("Mapping config being read from: " + self.configfile + "\n")
+    def get_import_configuration(self):
+        """Read the import config file which describes the mapping
+        we need to convert an external CSV into an import sheet.
+        """
+        logger.info("mapping config being read from: '%s'", self.configfile)
         self.config.read(self.configfile)
-
-        # retrieve values...
         self.pathmask = self.__checkconfig__(self.mapconfig, self.pathmask)
         self.checksumcol = self.__checkconfig__(self.mapconfig, self.checksumcolumn)
         self.pathcol = self.__checkconfig__(self.mapconfig, self.pathcolumn)
         self.descriptiontext = self.__checkconfig__(self.mapping, self.desctext)
-
-        # access our regular expression for dates...
         self.userdatepattern = self.__checkconfig__(self.mapconfig, self.datepattern)
         if self.userdatepattern is not None:
             self.dates = re.compile(self.userdatepattern)
         return
 
     # Read the import sheet headers from our CSV schema file...
-    def __getheaders__(self):
-        sys.stderr.write("Import schema being read from: " + self.importschema + "\n")
-        f = open(self.importschema, "rb")
-        importschemajson = f.read()
-        importschema = JsonTableSchema.JSONTableSchema(importschemajson)
-        self.importheaders = importschema.as_list()
-        f.close()
+    def get_import_table_headers(self):
+        """Read the import table schema headers for our CSV file from
+        the import schema declaration.
+        """
+        logging.info("import table schema being read from: %s", self.importschema)
+        with open(self.importschema, "rb") as schema:
+            importschemajson = schema.read()
+            importschema = JsonTableSchema.JSONTableSchema(importschemajson)
+            self.import_schema_headers = importschema.as_list()
         return
 
-    # Using the CSV headers, see if there is an entry in the config file
-    # for the information we're receiving in this class.
-    def __getmappingtable__(self):
-        for i in self.importheaders:
-            if self.config.has_option(self.mapping, i):
-                mapvalue = self.config.get(self.mapping, i)
-                if mapvalue != "":
-                    if len(mapvalue.split(",")) > 1:
-                        for j in mapvalue.split(","):
-                            self.rowdict[j] = i
-                            self.maphead.append(j)
-                    else:
-                        self.rowdict[mapvalue] = i
-                        self.maphead.append(mapvalue)
+    def get_mappings(self):
+        """TODO... map something...
+        Using the CSV headers, see if there is an entry in the config file
+        for the information we're receiving in this class.
+        """
+        for header in self.import_schema_headers:
+            if not self.config.has_option(self.mapping, header):
+                continue
+            mapvalue = self.config.get(self.mapping, header)
+            if mapvalue == "":
+                continue
+            if len(mapvalue.split(",")) > 1:
+                for value in mapvalue.split(","):
+                    self.rowdict[value] = header
+                    self.maphead.append(value)
+            else:
+                self.rowdict[mapvalue] = header
+                self.maphead.append(mapvalue)
 
-        sys.stderr.write(
-            "Mapped fields ({external field: import field}): %s\n" % self.rowdict
-        )
+        logger.info("mapped fields ({external field: import field}): %s", self.rowdict)
 
-    # Read the external CSV we want to extract metadata from...
     def readExternalCSV(self, extcsvname):
+        """Read the external CSV we want to extract metadata from..."""
         augmented = []  # augmented metadata
         exportlist = None
         if exists(extcsvname):
@@ -119,30 +127,29 @@ class ExternalCSVHandler:
             if len(exportlist) < 1:
                 exportlist = None
             if exportlist is not None:
-                for e in exportlist:
+                for external_row in exportlist:
                     # we need to differentiate in case we get non-unique values
                     nscount = 0
                     row = NewRow()
-                    if e[self.checksumcol] != "":
-                        row.checksum = e[self.checksumcol]
-                    if e[self.pathcol] != "":
-                        row.path = e[self.pathcol].replace(self.pathmask, "")
-                    for f in e:
-                        if f in self.maphead:
-                            data = e[f].strip()  # remove trailing ws early
+                    if external_row[self.checksumcol] != "":
+                        row.checksum = external_row[self.checksumcol]
+                    if external_row[self.pathcol] != "":
+                        row.path = external_row[self.pathcol].replace(self.pathmask, "")
+                    for field in external_row:
+                        if field in self.maphead:
+                            data = external_row[field].strip()
                             if re.match(self.dates, data):
                                 data = self.__fixdates__(data)
-                            # data is data, unless dates, but if dates, append
-                            if self.rowdict[f] == "Description":
+                            if self.rowdict[field] == "Description":
                                 if data != "":
                                     nscount += 1
-                                    data = f + ": " + data
+                                    data = field + ": " + data
                                     data = "ns" + str(nscount) + ":" + data
                                     row.rdict[data] = self.rowdict[f]
                             else:
                                 nscount += 1
-                                data = "ns" + str(nscount) + ":" + data
-                                row.rdict[data] = self.rowdict[f]
+                                data = f"ns{nscount}:{data}"
+                                row.rdict[data] = self.rowdict[field]
                     if row.checksum != "":
                         augmented.append(row)
 

@@ -6,6 +6,8 @@ import os
 import sys
 import time
 
+# pylint: disable=R0801
+
 try:
     from ExternalCSVHandlerClass import ExternalCSVHandler
     from ImportOverviewGenerator import ImportOverviewGenerator

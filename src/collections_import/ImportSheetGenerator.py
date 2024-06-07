@@ -4,6 +4,7 @@ import configparser as ConfigParser
 import logging
 import sys
 from datetime import datetime
+from typing import Final
 
 try:
     from droidcsvhandlerclass import *
@@ -18,6 +19,8 @@ except ModuleNotFoundError:
 
 
 logger = logging.getLogger(__name__)
+
+DATE_FORMAT: Final[str] = "%Y-%m-%dT%H:%M:%S"
 
 
 class ImportSheetGenerator:
@@ -36,14 +39,17 @@ class ImportSheetGenerator:
         else:
             self.externalCSV = None
 
-    def retrieve_year_from_modified_date(self, MODIFIED_DATE):
-        year = ""
-        if MODIFIED_DATE != "":
-            inputdateformat = "%Y-%m-%dT%H:%M:%S"
-            year = datetime.strptime(MODIFIED_DATE, inputdateformat).year
-        else:
-            sys.stderr.write("Date field used to extrave 'year' is blank.")
-        return year
+    def retrieve_year_from_modified_date(self, modified_date: str) -> str:
+        """Retrieve the year from the last modified date."""
+        if modified_date == "":
+            logger.info("Date field used to extrave 'year' is blank.")
+            return ""
+        try:
+            return datetime.strptime(modified_date, DATE_FORMAT).year
+        except ValueError as err:
+            logger.info("handling unconverted data in datetime: %s", err)
+            date_len: Final[int] = len("2024-06-07T13:57:03")
+            return datetime.strptime(modified_date[:date_len], DATE_FORMAT).year
 
     def add_csv_value(self, value):
         field = ""
