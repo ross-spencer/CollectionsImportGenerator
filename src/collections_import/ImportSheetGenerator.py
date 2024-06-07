@@ -23,6 +23,26 @@ logger = logging.getLogger(__name__)
 DATE_FORMAT: Final[str] = "%Y-%m-%dT%H:%M:%S"
 
 
+class ImportGenerationException(Exception):
+    """Exception to raise for unrecoverable issues in this script."""
+
+
+def get_droid_hash(file_row: dict) -> str:
+    """Return the hash used for a given row in a DROID CSV"""
+
+    for hash in ("MD5_HASH", "SHA1_HASH", "SHA256_HASH", "SHA512_HASH"):
+        try:
+            return file_row[hash].lower()
+        except KeyError:
+            pass
+    raise ImportGenerationException("CSV isn't configured in the DROID sheet")
+
+
+def get_hash(file_row: dict) -> str:
+    """Return the checksum value from a DROID hash field."""
+    return get_droid_hash(file_row)
+
+
 class ImportSheetGenerator:
     def __init__(self, droidcsv, importschema, configfile):
         self.externalCSV = None
@@ -113,14 +133,11 @@ class ImportSheetGenerator:
                 # First, retrieve a matching row from our external CSV...
                 if externalmapping is True:
                     droid_path = ""
+                    # filerow is a DROID row again so let's use generic
+                    # DROID functions here.
                     if "FILE_PATH" in filerow:
                         droid_path = self.get_path(filerow["FILE_PATH"])
-                    if "MD5_HASH" in filerow:
-                        droid_hash = filerow["MD5_HASH"].lower()
-                    elif "SHA1_HASH" in filerow:
-                        droid_hash = filerow["SHA1_HASH"].lower()
-                    elif "SHA256_HASH" in filerow:
-                        droid_hash = filerow["SHA256_HASH"].lower()
+                    droid_hash = get_droid_hash(filerow)
                     r = self.get_external_row(droid_hash, droid_path)
 
                 # Extract year from file modified date for open and closed year
@@ -154,12 +171,8 @@ class ImportSheetGenerator:
                                 fieldtext = self.get_path(dir)
                             if droidfield == "NAME":
                                 fieldtext = self.get_title(filerow["NAME"])
-                            if droidfield == "MD5_HASH":
-                                fieldtext = filerow["MD5_HASH"]
-                            if droidfield == "SHA1_HASH":
-                                fieldtext = filerow["SHA1_HASH"]
-                            if droidfield == "SHA256_HASH":
-                                fieldtext = filerow["SHA256_HASH"]
+                            if droidfield.endswith("_HASH"):
+                                fieldtext = get_hash(file_row=filerow)
                             if droidfield == "LAST_MODIFIED":
                                 if self.config.has_option(
                                     "additional values", "descriptiontext"
