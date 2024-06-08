@@ -2,7 +2,6 @@
 
 import configparser as ConfigParser
 import logging
-import sys
 from datetime import datetime
 from typing import Final
 
@@ -43,33 +42,116 @@ def get_hash(file_row: dict) -> str:
     return get_droid_hash(file_row)
 
 
+def retrieve_year_from_modified_date(modified_date: str) -> str:
+    """Retrieve the year from the last modified date."""
+    if modified_date == "":
+        logger.info("Date field used to extrave 'year' is blank.")
+        return ""
+    try:
+        return datetime.strptime(modified_date, DATE_FORMAT).year
+    except ValueError as err:
+        logger.info("handling unconverted data in datetime: %s", err)
+        date_len: Final[int] = len("2024-06-07T13:57:03")
+        return datetime.strptime(modified_date[:date_len], DATE_FORMAT).year
+
+
+def add_csv_value(value):
+    field = ""
+    if type(value) is int:  # TODO: probably a better way to do this (type-agnostic)
+        field = f'"{value}"'
+    else:
+        field = f'"{value}"'
+    return field
+
+
+def get_path(path, pathmask=None):
+    """Retrieve a path using an optional pathmask to remove OS
+    specific information, e.g. matching files across users or
+    different drives.
+    """
+    if not pathmask:
+        return
+    logger.info("using pathmask: '%s'", pathmask)
+    return path.replace(pathmask, "")
+
+
+def get_title(title):
+    # split once at full-stop (assumptuon 'ext' follows)
+    return title.rsplit(".", 1)[0].rstrip()
+
+
+def splitns(value):
+    """Split namespace from a schema field entry."""
+    return value.strip().split(":", 1)[1]
+
+
+def map_to_collection_schema(
+    import_schema, external_csv_row, droid_row, config, default_year
+):
+    """Map data to a collection CSV schema."""
+    importcsv = ""
+    importschema = import_schema
+    for column_name in importschema.field_names:
+        fieldtext = ""
+        entry = False
+        for entry_ in external_csv_row.rdict.keys():
+            field_name = external_csv_row.rdict.get(entry_)
+            if column_name != field_name:
+                continue
+            new_entry = ""
+            if column_name != "Description":
+                new_entry = splitns(entry_)
+            elif column_name == "Name":
+                new_entry = get_title(entry_)
+            importcsv = f"{importcsv}{add_csv_value(new_entry)}"
+            entry = True
+            break
+        if entry is not True:
+            if config.has_option("droid mapping", column_name):
+                droidfield = config.get("droid mapping", column_name)
+                if droidfield == "FILE_PATH":
+                    dir = os.path.dirname(droid_row["FILE_PATH"])
+                    pathmask = config.get("additional values", "pathmask")
+                    fieldtext = get_path(dir, pathmask)
+                if droidfield == "NAME":
+                    fieldtext = get_title(droid_row["NAME"])
+                if droidfield.endswith("_HASH"):
+                    fieldtext = get_hash(file_row=droid_row)
+                importcsv = importcsv + add_csv_value(fieldtext)
+                entry = True
+        if config.has_option("static values", column_name):
+            importcsv = importcsv + add_csv_value(
+                config.get("static values", column_name)
+            )
+            entry = True
+        # If we haven't years from an external source, add them here.
+        if (column_name == "Open Year") and entry is not True:
+            importcsv = importcsv + add_csv_value(default_year)
+            entry = True
+        if (column_name == "Close Year") and entry is not True:
+            importcsv = importcsv + add_csv_value(default_year)
+            entry = True
+        if entry is False:
+            importcsv = importcsv + add_csv_value("")
+        importcsv = f"{importcsv},"
+    return importcsv
+
+
 class ImportSheetGenerator:
     def __init__(self, droidcsv, importschema, configfile):
         self.externalCSV = None
         self.config = ConfigParser.RawConfigParser()
         if configfile is not False and configfile is not None:
             self.config.read(configfile)
-            self.pathmask = self.config.get("additional values", "pathmask")
         self.droidcsv = droidcsv
         self.importschema = importschema
+        self.pathmask = None
 
     def setExternalCSV(self, externalCSV):
         if externalCSV is not None:
             self.externalCSV = externalCSV
         else:
             self.externalCSV = None
-
-    def retrieve_year_from_modified_date(self, modified_date: str) -> str:
-        """Retrieve the year from the last modified date."""
-        if modified_date == "":
-            logger.info("Date field used to extrave 'year' is blank.")
-            return ""
-        try:
-            return datetime.strptime(modified_date, DATE_FORMAT).year
-        except ValueError as err:
-            logger.info("handling unconverted data in datetime: %s", err)
-            date_len: Final[int] = len("2024-06-07T13:57:03")
-            return datetime.strptime(modified_date[:date_len], DATE_FORMAT).year
 
     def add_csv_value(self, value):
         field = ""
@@ -80,16 +162,22 @@ class ImportSheetGenerator:
         return field
 
     def get_path(self, path):
+        """Retrieve a path using an optional pathmask to remove OS
+        specific information, e.g. matching files across users or
+        different drives.
+        """
+        if not self.pathmask:
+            return path
+        logger.info("using pathmask: '%s'", self.pathmask)
         return path.replace(self.pathmask, "")
 
     def get_title(self, title):
         # split once at full-stop (assumptuon 'ext' follows)
         return title.rsplit(".", 1)[0].rstrip()
 
-    count = 0
-
     def splitns(self, value):
-        return value.split(":", 1)[1]
+        """Split namespace from a schema field entry."""
+        return value.strip().split(":", 1)[1]
 
     def get_external_row(self, droid_checksum, droid_path):
         """Get a row of data from an external CSV by matching it
@@ -103,7 +191,7 @@ class ImportSheetGenerator:
                     "found path: '%s' <> '%s' but checksums didn't match: %s <> %s",
                     row.path,
                     droid_path,
-                    row.checksum,
+                    row.checksum.lower(),
                     droid_checksum,
                 )
                 continue
@@ -115,107 +203,53 @@ class ImportSheetGenerator:
         )
         return None
 
-    def map_to_import_schema(self, externalmapping=False):
+    def map_to_import_schema(self, externalmapping: bool = False):
         """Given a Collections import CSV schema, data to its fields row
         by row and output a compatible CSV.
+
+        1. DROID drives this script for digital transgers. For each
+        row in a DROID report we must create an entry in the import
+        sheet and pair additional data as we go.
+
+        2. We retieve a mapping from an external spreadsheet given a
+        match on checksum and filename.
+
+        3. Now for every field in the CSV schema file, map the entries
+        per the configuration.
+
+        4. Finally return the CSV to the console/terminal/CLI.
         """
-        if self.importschema is not False:
-            f = open(self.importschema, "rb")
-
-            importschemajson = f.read()
-
-            importschema = JsonTableSchema.JSONTableSchema(importschemajson)
-            importschemaheader = importschema.as_csv_header()
-
-            logger.info("mapping to: '%s' fields", len(importschema.field_names))
-
-            importcsv = f"{importschemaheader}\n"
-
-            for filerow in self.droidlist:
-                r = None
-
-                # First, retrieve a matching row from our external CSV...
-                if externalmapping is True:
-                    droid_path = ""
-                    # filerow is a DROID row again so let's use generic
-                    # DROID functions here.
-                    if "FILE_PATH" in filerow:
-                        droid_path = self.get_path(filerow["FILE_PATH"])
-                    droid_hash = get_droid_hash(filerow)
-                    r = self.get_external_row(droid_hash, droid_path)
-
-                # Extract year from file modified date for open and closed year
-                yearopenclosed = self.retrieve_year_from_modified_date(
-                    filerow["LAST_MODIFIED"]
-                )
-
-                for column_name in importschema.field_names:
-                    fieldtext = ""
-                    entry = False
-
-                    if r is not None:
-                        for val in r.rdict:
-                            if column_name == r.rdict[val]:
-                                if column_name != "Description":
-                                    val = self.splitns(val)
-                                fieldtext = val
-                                if column_name == "Title":
-                                    fieldtext = self.get_title(fieldtext)
-                                importcsv = importcsv + self.add_csv_value(fieldtext)
-                                entry = True
-                                break
-
-                    if entry is not True:
-                        if self.config.has_option("droid mapping", column_name):
-                            droidfield = self.config.get("droid mapping", column_name)
-                            if droidfield == "FILE_PATH":
-                                dir = os.path.dirname(filerow["FILE_PATH"])
-                                fieldtext = self.get_path(dir)
-                            if droidfield == "NAME":
-                                fieldtext = self.get_title(filerow["NAME"])
-                            if droidfield.endswith("_HASH"):
-                                fieldtext = get_hash(file_row=filerow)
-                            if droidfield == "LAST_MODIFIED":
-                                if self.config.has_option(
-                                    "additional values", "descriptiontext"
-                                ):
-                                    fieldtext = (
-                                        self.config.get(
-                                            "additional values", "descriptiontext"
-                                        )
-                                        + " "
-                                        + str(filerow[droidfield])
-                                    )
-
-                            importcsv = importcsv + self.add_csv_value(fieldtext)
-                            entry = True
-
-                    if self.config.has_option("static values", column_name):
-                        importcsv = importcsv + self.add_csv_value(
-                            self.config.get("static values", column_name)
-                        )
-                        entry = True
-
-                    # If we haven't years from an external source, add them
-                    # here...
-                    if (column_name == "Open Year") and entry is not True:
-                        importcsv = importcsv + self.add_csv_value(yearopenclosed)
-                        entry = True
-
-                    if (column_name == "Close Year") and entry is not True:
-                        importcsv = importcsv + self.add_csv_value(yearopenclosed)
-                        entry = True
-
-                    if entry is False:
-                        importcsv = importcsv + self.add_csv_value("")
-
-                    importcsv = importcsv + ","
-
-                importcsv = importcsv.rstrip(",") + "\n"
-
-            f.close()
-
-            sys.stdout.write(importcsv)
+        importschemajson = None
+        with open(self.importschema, "r", encoding="utf-8") as import_schema_file:
+            importschemajson = import_schema_file.read()
+        importschema = JsonTableSchema.JSONTableSchema(importschemajson)
+        importschemaheader = importschema.as_csv_header()
+        logger.info("mapping to: '%s' fields", len(importschema.field_names))
+        importcsv = f"{importschemaheader}\n"
+        # Loop over the DROID report.
+        for droid_row in self.droidlist:
+            external_csv_row = None
+            # Extract year from file modified date for open and closed
+            # year for if there are no other mappings.
+            default_year_open_closed = retrieve_year_from_modified_date(
+                droid_row["LAST_MODIFIED"]
+            )
+            if externalmapping:
+                # we have an external CSV to map data from, retrieve each
+                # row, file by file.
+                droid_path = self.get_path(droid_row["FILE_PATH"])
+                droid_hash = get_droid_hash(droid_row)
+                external_csv_row = self.get_external_row(droid_hash, droid_path)
+            mapped_data = map_to_collection_schema(
+                import_schema=importschema,
+                external_csv_row=external_csv_row,
+                droid_row=droid_row,
+                config=self.config,
+                default_year=default_year_open_closed,
+            )
+            importcsv = f"{importcsv}{mapped_data}"
+            importcsv = f"{importcsv.rstrip(',')}\n"
+        print(importcsv)
 
     def readDROIDCSV(self):
         if self.droidcsv is not False:
@@ -232,12 +266,13 @@ class ImportSheetGenerator:
         ):
             self.droidlist = self.readDROIDCSV()
             self.map_to_import_schema(True)
-            sys.stderr.write(
-                "External count: "
-                + str(len(self.externalCSV))
-                + " DROID Count: "
-                + str(len(self.droidlist))
-                + "\n"
+            external_len = len(self.externalCSV)
+            droid_len = len(self.droidlist)
+            logger.info(
+                "eexternal count: '%s', DROID count: '%s', counts equal? (%s)",
+                external_len,
+                droid_len,
+                external_len == droid_len,
             )
         elif self.droidcsv is not False and self.importschema is not False:
             self.droidlist = self.readDROIDCSV()

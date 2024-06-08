@@ -1,12 +1,13 @@
 """"Collections Import Generator tool."""
 
+# pylint: disable=R0801
+
 import argparse
 import logging
 import os
 import sys
 import time
-
-# pylint: disable=R0801
+from typing import Final
 
 try:
     from ExternalCSVHandlerClass import ExternalCSVHandler
@@ -59,14 +60,22 @@ def createImportCSV(importgenerator):
 
 
 def main():
-    jsonschema = "schema/archway-import-schema.json"
+    """Primary entry point for this script."""
 
-    # 	Usage: 	--csv [droid report]
-    # 	Handle command line arguments for the script
+    schema_filename: Final[str] = "archway-import-schema.json"
+
+    json_schema_file = os.path.join("schema", schema_filename)
+    if not os.path.exists(json_schema_file):
+        # This should always be part of the package object.
+        logger.error(
+            "schema file does not exist: '%s' exiting...",
+            os.path.abspath(json_schema_file),
+        )
+        sys.exit(1)
+
     parser = argparse.ArgumentParser(
         description="Generate Archway Import Sheet and Rosetta Ingest CSV from DROID CSV Reports."
     )
-
     parser.add_argument(
         "--csv", help="DROID CSV to read.", default=False, required=True
     )
@@ -85,7 +94,6 @@ def main():
         default=False,
         required=False,
     )
-
     parser.add_argument(
         "--conf",
         "--config",
@@ -98,34 +106,41 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    # 	Parse arguments into namespace object to reference later in the script
     global args
     args = parser.parse_args()
 
-    configfile = os.path.join("config", "import-mapping.cfg")
-    if args.conf:
-        configfile = args.conf
-
-    # Creating an import sheet for Archway...
+    # Basic import sheet with no external metadata mapping.
     if args.csv and not args.over and not args.ext:
-        sys.stderr.write("Writing full Archway import sheet.\n")
-        importGenerator = importsheetDROIDmapping(args.csv, jsonschema, configfile)
-        createImportCSV(importGenerator)
-    elif args.csv and not args.over and args.ext:
-        sys.stderr.write("Writing full Archway import sheet with external metadata.\n")
-        # external mapping is an involved process... it needs full knowledge of
-        # two data formats, not least the import sheet layout we require...
-        importGenerator = importsheetDROIDmapping(args.csv, jsonschema, configfile)
-        handleExternalCSV(args.ext, importGenerator, configfile, jsonschema)
-        createImportCSV(importGenerator)
-    # Creating a cover sheet for Archway...
-    elif args.csv and args.over:
-        sys.stderr.write("Writing Archway overview sheet.\n")
-        createImportOverview(args.csv, configfile)
-    # We're not doing anything sensible...
-    else:
-        parser.print_help()
-        sys.exit(1)
+        logger.info("writing full Archway import sheet")
+        importGenerator = importsheetDROIDmapping(
+            droidcsv=args.csv, importschema=json_schema_file, configfile=args.conf
+        )
+        createImportCSV(importgenerator=importGenerator)
+        sys.exit()
+
+    # Import sheet with external metadata mapping.
+    if args.csv and not args.over and args.ext:
+        logger.info("writing full Archway import sheet with external metadata")
+        importGenerator = importsheetDROIDmapping(
+            droidcsv=args.csv, importschema=json_schema_file, configfile=args.conf
+        )
+        handleExternalCSV(
+            csv=args.ext,
+            importGenerator=importGenerator,
+            configfile=args.conf,
+            importschema=json_schema_file,
+        )
+        createImportCSV(importgenerator=importGenerator)
+        sys.exit()
+
+    # Collections overview.
+    if args.csv and args.over:
+        logger.info("writing Archway overview sheet")
+        createImportOverview(droidcsv=args.csv, configfile=args.conf)
+        sys.exit()
+
+    parser.print_help()
+    sys.exit(1)
 
 
 if __name__ == "__main__":
