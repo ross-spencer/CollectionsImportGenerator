@@ -92,7 +92,7 @@ class ExternalCSVHandler:
         with open(self.importschema, "rb") as schema:
             importschemajson = schema.read()
             importschema = JsonTableSchema.JSONTableSchema(importschemajson)
-            self.import_schema_headers = importschema.as_list()
+            self.import_schema_headers = importschema.field_names
         return
 
     def get_mappings(self):

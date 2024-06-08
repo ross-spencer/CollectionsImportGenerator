@@ -147,17 +147,11 @@ class JSONTableSchema(object):
     def as_dict(self):
         return {"json_table_schema_version": self.format_version, "fields": self.fields}
 
-    def as_list(self):
-        headers = []
-        for name in self.field_names:
-            headers.append(str(name))
-        return headers
-
     def as_csv_header(self):
-        csv_header = ""
-        for name in self.field_names:
-            csv_header = csv_header + '"' + str(name) + '",'
-        return csv_header[:-1]
+        """Concatenate field names into a single CSV header."""
+        joined = '","'.join(self.field_names)
+        csv_header = f'"{joined}"'
+        return csv_header.strip()
 
     def check_type(self, field_type, field_name):
         type_found = False
