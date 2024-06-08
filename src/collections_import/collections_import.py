@@ -11,17 +11,17 @@ import time
 from typing import Final
 
 try:
-    from ImportSheetGenerator import import_sheet_generator
-    from JsonTableSchema import JsonTableSchema
+    from import_sheet_generator import import_sheet_generator
+    from json_table_schema import json_table_schema
     from schema_file import JSON_SCHEMA
 except ModuleNotFoundError:
     try:
-        from src.collections_import.ImportSheetGenerator import import_sheet_generator
-        from src.collections_import.JsonTableSchema import JsonTableSchema
+        from src.collections_import.import_sheet_generator import import_sheet_generator
+        from src.collections_import.json_table_schema import json_table_schema
         from src.collections_import.schema_file import JSON_SCHEMA
     except ModuleNotFoundError:
-        from collections_import.ImportSheetGenerator import import_sheet_generator
-        from collections_import.JsonTableSchema import JsonTableSchema
+        from collections_import.import_sheet_generator import import_sheet_generator
+        from collections_import.json_table_schema import json_table_schema
         from collections_import.schema_file import JSON_SCHEMA
 
 
@@ -90,13 +90,12 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    global args
     args = parser.parse_args()
 
     if args.list:
         with open(json_schema_file, "r", encoding="utf-8") as import_schema_file:
             import_schema_json = import_schema_file.read()
-        import_schema = JsonTableSchema.JSONTableSchema(import_schema_json)
+        import_schema = json_table_schema.JSONTableSchema(import_schema_json)
         import_schema.as_csv_header()
         print("fields described in collections schema:")
         print("")

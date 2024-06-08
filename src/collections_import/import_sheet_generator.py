@@ -1,23 +1,25 @@
 """Import sheet generator."""
 
+# pylint: disable=C0301,R0913,R0914,R0912
+
 import configparser as ConfigParser
 import logging
 from datetime import datetime
 from typing import Final
 
 try:
-    from droidcsvhandlerclass import *
-    from ExternalCSVHandlerClass import ExternalCSVHandler
-    from JsonTableSchema import JsonTableSchema
+    from droid_csv_handler import DroidCSVHandler
+    from external_csv_handler import ExternalCSVHandler
+    from json_table_schema import json_table_schema
 except ModuleNotFoundError:
     try:
-        from src.collections_import.droidcsvhandlerclass import *
-        from src.collections_import.ExternalCSVHandlerClass import ExternalCSVHandler
-        from src.collections_import.JsonTableSchema import JsonTableSchema
+        from src.collections_import.droid_csv_handler import DroidCSVHandler
+        from src.collections_import.external_csv_handler import ExternalCSVHandler
+        from src.collections_import.json_table_schema import json_table_schema
     except ModuleNotFoundError:
-        from collections_import.droidcsvhandlerclass import *
-        from collections_import.ExternalCSVHandlerClass import ExternalCSVHandler
-        from collections_import.JsonTableSchema import JsonTableSchema
+        from collections_import.droid_csv_handler import DroidCSVHandler
+        from collections_import.external_csv_handler import ExternalCSVHandler
+        from collections_import.json_table_schema import json_table_schema
 
 
 logger = logging.getLogger(__name__)
@@ -32,9 +34,9 @@ class ImportGenerationException(Exception):
 def get_droid_hash(file_row: dict) -> str:
     """Return the hash used for a given row in a DROID CSV"""
 
-    for hash in ("MD5_HASH", "SHA1_HASH", "SHA256_HASH", "SHA512_HASH"):
+    for hash_ in ("MD5_HASH", "SHA1_HASH", "SHA256_HASH", "SHA512_HASH"):
         try:
-            return file_row[hash].lower()
+            return file_row[hash_].lower()
         except KeyError:
             pass
     raise ImportGenerationException("hashes aren't configured in the DROID sheet")
@@ -75,6 +77,7 @@ def get_path(path, pathmask=None):
 
 
 def get_title(title):
+    """Return a string for a record title with whitespace stripped."""
     # split once at full-stop (assumptuon 'ext' follows)
     return title.rsplit(".", 1)[0].rstrip()
 
@@ -115,9 +118,9 @@ def map_to_collection_schema(
             if config.has_option("droid mapping", column_name):
                 droidfield = config.get("droid mapping", column_name)
                 if droidfield == "FILE_PATH":
-                    dir = droid_row["FILE_PATH"]
+                    dir_ = droid_row["FILE_PATH"]
                     pathmask = config.get("additional values", "pathmask")
-                    fieldtext = get_path(dir, pathmask)
+                    fieldtext = get_path(dir_, pathmask)
                 if droidfield == "NAME":
                     fieldtext = get_title(droid_row["NAME"])
                 if droidfield.endswith("_HASH"):
@@ -177,7 +180,7 @@ def _create_import_sheet(droid_csv, external_csv, import_schema, config, droid_o
     row in a DROID report we must create an entry in the import
     sheet and pair additional data as we go.
 
-    2. We retieve a mapping from an external spreadsheet given a
+    2. We retrieve a mapping from an external spreadsheet given a
     match on checksum and filename.
 
     3. Now for every field in the CSV schema file, map the entries
@@ -188,7 +191,7 @@ def _create_import_sheet(droid_csv, external_csv, import_schema, config, droid_o
     importschemajson = None
     with open(import_schema, "r", encoding="utf-8") as import_schema_file:
         importschemajson = import_schema_file.read()
-    importschema = JsonTableSchema.JSONTableSchema(importschemajson)
+    importschema = json_table_schema.JSONTableSchema(importschemajson)
     importschemaheader = importschema.as_csv_header()
     logger.info("mapping to: '%s' fields", len(importschema.field_names))
     importcsv = f"{importschemaheader}\n"
@@ -266,10 +269,10 @@ def create_import_csv(
 
 def read_droid_report(droid_csv):
     """Read a DROID report for mapping."""
-    droidcsvhandler = droidCSVHandler()
-    droid_list = droidcsvhandler.readDROIDCSV(droid_csv)
-    droid_list = droidcsvhandler.removefolders(droid_list)
-    droid_list = droidcsvhandler.removecontainercontents(droid_list)
+    droidcsvhandler = DroidCSVHandler()
+    droid_list = droidcsvhandler.read_droid_csv(droid_csv)
+    droid_list = droidcsvhandler.remove_folders(droid_list)
+    droid_list = droidcsvhandler.remove_container_contents(droid_list)
     return droid_list
 
 
@@ -297,7 +300,7 @@ def read_config(config):
             "[external mapping]",
         ]
         err = f"application config not setup correctly, ensure there are sections for: {', '.join(sections)}"
-        raise ImportGenerationException(err)
+        raise ImportGenerationException(err) from err
     except ConfigParser.NoOptionError:
         pass
     return config_obj
@@ -311,7 +314,7 @@ def import_sheet_generator(droid_csv, external_csv, import_schema, config):
     droid_only = True
     if external_csv:
         external_data = ExternalCSVHandler(config, import_schema)
-        external_csv = external_data.readExternalCSV(external_csv)
+        external_csv = external_data.read_external_csv(external_csv)
         droid_only = False
     import_csv = create_import_csv(
         droid_csv=droid_csv,

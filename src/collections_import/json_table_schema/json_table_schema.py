@@ -1,19 +1,21 @@
-#!/usr/bin/env python
-# coding: utf-8
-#
-# json-table-schema, an implementation of the JSON Table Schema format,
-# by Martin Keegan
-#
-# Original: https://github.com/mk270/json-table-schema-python
-# (Copyright (C) 2013  Martin Keegan)
-#
-# Latest, provides partial support for 1.0-pre3.1
-# Copyright (C) 2014  Ross Spencer
-#
-# More info: http://www.dataprotocols.org/en/latest/json-table-schema.html
-#
-# This programme is free software; you may redistribute and/or modify
-# it under the terms of the Apache Software Licence v2.0
+"""JSON Table Schema
+
+json-table-schema, an implementation of the JSON Table Schema format,
+by Martin Keegan
+
+Original: https://github.com/mk270/json-table-schema-python
+(Copyright (C) 2013  Martin Keegan)
+
+Latest, provides partial support for 1.0-pre3.1
+Copyright (C) 2014  Ross Spencer
+
+More info: http://www.dataprotocols.org/en/latest/json-table-schema.html
+
+This programme is free software; you may redistribute and/or modify
+it under the terms of the Apache Software Licence v2.0
+"""
+
+# pylint: disable=C0116, C0115
 
 import json
 import sys
@@ -22,9 +24,9 @@ try:
     import csvdatatypes
 except ModuleNotFoundError:
     try:
-        from src.collections_import.JsonTableSchema import csvdatatypes
+        from src.collections_import.json_table_schema import csvdatatypes
     except ModuleNotFoundError:
-        from collections_import.JsonTableSchema import csvdatatypes
+        from collections_import.json_table_schema import csvdatatypes
 
 
 class FormatError(Exception):
@@ -39,7 +41,7 @@ class NotJSONError(Exception):
     pass
 
 
-class JSONTableSchema(object):
+class JSONTableSchema:
     __format_version__ = "1.0-pre3.1-partial-implementation"
 
     required_field_descriptor_keys = ["name"]
@@ -67,7 +69,7 @@ class JSONTableSchema(object):
                 self.read_json(json.loads(json_string))
             except ValueError:
                 sys.stderr.write(
-                    "Invalid JSON object the likely cause. Please chack and try again."
+                    "Invalid JSON object the likely cause. Please check and try again."
                 )
 
     def read_json(self, json_string):
@@ -80,14 +82,14 @@ class JSONTableSchema(object):
         if not isinstance(field_list, list):
             raise FormatError("JSON key `fields' must be array")
 
-        for i, stanza in enumerate(field_list):
+        for idx, stanza in enumerate(field_list):
             if not isinstance(stanza, dict):
-                err_str = "Field descriptor %d must be a dictionary" % idx
+                err_str = f"Field descriptor {idx} must be a dictionary"
                 raise FormatError(err_str)
 
             for key in self.required_field_descriptor_keys:
                 if key not in stanza:
-                    err_tmpl = "Field descriptor %d must contain key `%s'" % (i, key)
+                    err_tmpl = f"Field descriptor {idx} must contain key `{key}'"
                     raise FormatError(err_tmpl)
 
             for key in stanza:
@@ -97,10 +99,7 @@ class JSONTableSchema(object):
                     and key not in self.optional_field_descriptor_keys_lists
                     and key not in self.optional_field_descriptor_keys_patterns
                 ):
-                    err_tmpl = "Field descriptor %d shouldn't contain key `%s'" % (
-                        i,
-                        key,
-                    )
+                    err_tmpl = f"Field descriptor {idx} shouldn't contain key `{key}'"
                     raise FormatError(err_tmpl)
 
             self.add_field(stanza)
@@ -132,8 +131,6 @@ class JSONTableSchema(object):
 
                 field_dict[key] = field[key]
 
-        # TODO: Complex types, format and constraints
-
         self.fields.append(field_dict)
 
     def remove_field(self, field_name):
@@ -156,14 +153,13 @@ class JSONTableSchema(object):
     def check_type(self, field_type, field_name):
         type_found = False
         for field_category in csvdatatypes.__valid_type_names__:
-            for type in field_category:
-                if field_type == type:
+            for type_ in field_category:
+                if field_type == type_:
                     type_found = True
                     break
 
         if type_found is not True:
-            err_tmpl = "Invalid type `%s' in field descriptor for `%s'" % (
-                field_type,
-                field_name,
+            err_tmpl = (
+                f"Invalid type `{field_type}' in field descriptor for `{field_name}'"
             )
             raise FormatError(err_tmpl)

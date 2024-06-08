@@ -1,5 +1,7 @@
 """External CSV handler."""
 
+# pylint: disable=R0912,R1702,R0903,R0902
+
 import configparser as ConfigParser
 import logging
 import re
@@ -9,15 +11,15 @@ from os.path import exists
 # pylint: disable=R0801
 
 try:
-    from droidcsvhandlerclass import *
-    from JsonTableSchema import JsonTableSchema
+    from droid_csv_handler import GenericCSVHandler
+    from json_table_schema import json_table_schema
 except ModuleNotFoundError:
     try:
-        from src.collections_import.droidcsvhandlerclass import *
-        from src.collections_import.JsonTableSchema import JsonTableSchema
+        from src.collections_import.droid_csv_handler import GenericCSVHandler
+        from src.collections_import.json_table_schema import json_table_schema
     except ModuleNotFoundError:
-        from collections_import.droidcsvhandlerclass import *
-        from collections_import.JsonTableSchema import JsonTableSchema
+        from collections_import.droid_csv_handler import GenericCSVHandler
+        from collections_import.json_table_schema import json_table_schema
 
 logger = logging.getLogger(__name__)
 
@@ -34,15 +36,20 @@ def convert_dates(date: str, year: bool = True):
 
 
 class NewRow:
+    """NewRow Object for access to CSV data."""
+
     checksum = ""
     path = ""
     rdict = {}
 
     def __init__(self):
+        """Class Init."""
         self.rdict = {}  # shares memory if not initialized every call?
 
 
 class ExternalCSVHandler:
+    """Handler class for external CSV files."""
+
     # place to store cfg loc
     configfile = False
 
@@ -73,10 +80,12 @@ class ExternalCSVHandler:
 
         self.get_mappings()
 
-    def __checkconfig__(self, section, name):
+    def _checkconfig(self, section, name):
+        """Provide a means to check a configuration file."""
         if self.config.has_option(section, name):
             var = self.config.get(section, name)
             return var
+        return None
 
     def get_import_configuration(self):
         """Read the import config file which describes the mapping
@@ -84,14 +93,13 @@ class ExternalCSVHandler:
         """
         logger.info("mapping config being read from: '%s'", self.configfile)
         self.config.read(self.configfile)
-        self.pathmask = self.__checkconfig__(self.mapconfig, self.pathmask)
-        self.checksumcol = self.__checkconfig__(self.mapconfig, self.checksumcolumn)
-        self.pathcol = self.__checkconfig__(self.mapconfig, self.pathcolumn)
-        self.descriptiontext = self.__checkconfig__(self.mapping, self.desctext)
-        self.userdatepattern = self.__checkconfig__(self.mapconfig, self.datepattern)
+        self.pathmask = self._checkconfig(self.mapconfig, self.pathmask)
+        self.checksumcol = self._checkconfig(self.mapconfig, self.checksumcolumn)
+        self.pathcol = self._checkconfig(self.mapconfig, self.pathcolumn)
+        self.descriptiontext = self._checkconfig(self.mapping, self.desctext)
+        self.userdatepattern = self._checkconfig(self.mapconfig, self.datepattern)
         if self.userdatepattern is not None:
             self.dates = re.compile(self.userdatepattern)
-        return
 
     # Read the import sheet headers from our CSV schema file...
     def get_import_table_headers(self):
@@ -101,9 +109,8 @@ class ExternalCSVHandler:
         logging.info("import table schema being read from: %s", self.importschema)
         with open(self.importschema, "rb") as schema:
             importschemajson = schema.read()
-            importschema = JsonTableSchema.JSONTableSchema(importschemajson)
+            importschema = json_table_schema.JSONTableSchema(importschemajson)
             self.import_schema_headers = importschema.field_names
-        return
 
     def get_mappings(self):
         """TODO... map something...
@@ -126,13 +133,13 @@ class ExternalCSVHandler:
 
         logger.info("mapped fields ({external field: import field}): %s", self.rowdict)
 
-    def readExternalCSV(self, extcsvname):
+    def read_external_csv(self, extcsvname):
         """Read the external CSV we want to extract metadata from..."""
         augmented = []  # augmented metadata
         exportlist = None
         if exists(extcsvname):
-            csvhandler = genericCSVHandler()
-            exportlist = csvhandler.csvaslist(extcsvname)
+            csvhandler = GenericCSVHandler()
+            exportlist = csvhandler.csv_as_list(extcsvname)
             # counter a blank sheet
             if len(exportlist) < 1:
                 exportlist = None
@@ -155,7 +162,7 @@ class ExternalCSVHandler:
                                     nscount += 1
                                     data = field + ": " + data
                                     data = "ns" + str(nscount) + ":" + data
-                                    row.rdict[data] = self.rowdict[f]
+                                    row.rdict[data] = self.rowdict[field]
                             else:
                                 nscount += 1
                                 data = f"ns{nscount}:{data}"
@@ -163,12 +170,14 @@ class ExternalCSVHandler:
                     if row.checksum != "":
                         augmented.append(row)
 
-        return self.__fixdescription__(augmented)
+        return self._fixdescription(augmented)
 
     def splitns(self, value):
+        """Split a namespace string."""
         return value.split(":", 1)[1]
 
-    def __fixdescription__(self, augmented_list):
+    def _fixdescription(self, augmented_list):
+        """Provide a means to correct a description field."""
         for row in augmented_list:
             newrow = {}
             desc = ""
@@ -189,13 +198,7 @@ class ExternalCSVHandler:
                     newrow[r] = close
                 else:
                     newrow[r] = temprow[r]
-            """
-            if opendate != '' and close != '':
-                if int(opendate) > int(close):
-                    sys.stderr.write(
-                        "Dates incorrect open: " + opendate + " close: " + \
-                        close + "\n")
-			"""
+
             if desc != "" and self.descriptiontext is not None:
                 desc = desc + self.descriptiontext
                 newrow[desc] = "Description"
