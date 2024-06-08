@@ -1,7 +1,12 @@
 """Tests template."""
 
+import pytest
 
 from src.collections_import.ExternalCSVHandlerClass import convert_dates
+from src.collections_import.ImportSheetGenerator import (
+    ImportGenerationException,
+    get_hash,
+)
 
 
 def test_convert_dates():
@@ -16,3 +21,13 @@ def test_convert_dates():
     assert convert_dates(date) == date
     date = "random data"
     assert convert_dates(date) == date
+
+
+def test_get_hash():
+    """Provide some basic testing for get hash."""
+    test_row = {"MD5_HASH": "cafef00d"}
+    assert get_hash(test_row) == "cafef00d"
+    test_row = {"NOHASH": "badf00d"}
+    with pytest.raises(ImportGenerationException) as exception_info:
+        get_hash(test_row)
+    assert "hashes aren't configured" in str(exception_info.value)

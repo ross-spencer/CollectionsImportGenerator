@@ -35,7 +35,7 @@ def get_droid_hash(file_row: dict) -> str:
             return file_row[hash].lower()
         except KeyError:
             pass
-    raise ImportGenerationException("CSV isn't configured in the DROID sheet")
+    raise ImportGenerationException("hashes aren't configured in the DROID sheet")
 
 
 def get_hash(file_row: dict) -> str:
