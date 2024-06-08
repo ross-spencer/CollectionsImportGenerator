@@ -10,20 +10,17 @@ import time
 from typing import Final
 
 try:
-    from ExternalCSVHandlerClass import ExternalCSVHandler
     from ImportOverviewGenerator import ImportOverviewGenerator
-    from ImportSheetGenerator import ImportSheetGenerator
+    from ImportSheetGenerator import import_sheet_generator
 except ModuleNotFoundError:
     try:
-        from src.collections_import.ExternalCSVHandlerClass import ExternalCSVHandler
         from src.collections_import.ImportOverviewGenerator import (
             ImportOverviewGenerator,
         )
-        from src.collections_import.ImportSheetGenerator import ImportSheetGenerator
+        from src.collections_import.ImportSheetGenerator import import_sheet_generator
     except ModuleNotFoundError:
-        from collections_import.ExternalCSVHandlerClass import ExternalCSVHandler
         from collections_import.ImportOverviewGenerator import ImportOverviewGenerator
-        from collections_import.ImportSheetGenerator import ImportSheetGenerator
+        from collections_import.ImportSheetGenerator import import_sheet_generator
 
 
 logger = logging.getLogger(__name__)
@@ -38,25 +35,9 @@ logging.basicConfig(
 logging.Formatter.converter = time.gmtime
 
 
-def handleExternalCSV(csv, importGenerator, configfile, importschema):
-    ex = ExternalCSVHandler(configfile, importschema)
-    externalCSV = ex.readExternalCSV(csv)
-    importGenerator.setExternalCSV(externalCSV)
-    return
-
-
 def createImportOverview(droidcsv, configfile):
     createoverview = ImportOverviewGenerator(droidcsv, configfile)
     createoverview.createOverviewSheet()
-
-
-def importsheetDROIDmapping(droidcsv, importschema, configfile):
-    importgenerator = ImportSheetGenerator(droidcsv, importschema, configfile)
-    return importgenerator
-
-
-def createImportCSV(importgenerator):
-    importgenerator.droid2archwayimport()
 
 
 def main():
@@ -111,26 +92,24 @@ def main():
 
     # Basic import sheet with no external metadata mapping.
     if args.csv and not args.over and not args.ext:
-        logger.info("writing full Archway import sheet")
-        importGenerator = importsheetDROIDmapping(
-            droidcsv=args.csv, importschema=json_schema_file, configfile=args.conf
+        logger.info("writing full Archway import sheet without external metadata")
+        import_sheet_generator(
+            droid_csv=args.csv,
+            external_csv=None,
+            import_schema=json_schema_file,
+            config=args.conf,
         )
-        createImportCSV(importgenerator=importGenerator)
         sys.exit()
 
     # Import sheet with external metadata mapping.
     if args.csv and not args.over and args.ext:
         logger.info("writing full Archway import sheet with external metadata")
-        importGenerator = importsheetDROIDmapping(
-            droidcsv=args.csv, importschema=json_schema_file, configfile=args.conf
+        import_sheet_generator(
+            droid_csv=args.csv,
+            external_csv=args.ext,
+            import_schema=json_schema_file,
+            config=args.conf,
         )
-        handleExternalCSV(
-            csv=args.ext,
-            importGenerator=importGenerator,
-            configfile=args.conf,
-            importschema=json_schema_file,
-        )
-        createImportCSV(importgenerator=importGenerator)
         sys.exit()
 
     # Collections overview.
