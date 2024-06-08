@@ -59,8 +59,7 @@ def retrieve_year_from_modified_date(modified_date: str) -> str:
 
 
 def add_csv_value(value):
-    """Simple wraper to generate a field for a CSV which is double-quoted.
-    """
+    """Simple wrapper to generate a field for a CSV which is double-quoted."""
     return f'"{value}"'
 
 
