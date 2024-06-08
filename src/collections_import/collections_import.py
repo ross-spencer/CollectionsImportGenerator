@@ -10,18 +10,13 @@ import time
 from typing import Final
 
 try:
-    from ImportOverviewGenerator import ImportOverviewGenerator
     from ImportSheetGenerator import import_sheet_generator
     from JsonTableSchema import JsonTableSchema
 except ModuleNotFoundError:
     try:
-        from src.collections_import.ImportOverviewGenerator import (
-            ImportOverviewGenerator,
-        )
         from src.collections_import.ImportSheetGenerator import import_sheet_generator
         from src.collections_import.JsonTableSchema import JsonTableSchema
     except ModuleNotFoundError:
-        from collections_import.ImportOverviewGenerator import ImportOverviewGenerator
         from collections_import.ImportSheetGenerator import import_sheet_generator
         from collections_import.JsonTableSchema import JsonTableSchema
 
@@ -36,11 +31,6 @@ logging.basicConfig(
 
 # Default to UTC time.
 logging.Formatter.converter = time.gmtime
-
-
-def createImportOverview(droidcsv, configfile):
-    createoverview = ImportOverviewGenerator(droidcsv, configfile)
-    createoverview.createOverviewSheet()
 
 
 def main():
@@ -66,14 +56,6 @@ def main():
         help="DROID CSV to read.",
         default=False,
         required=False,
-    )
-    parser.add_argument(
-        "--over",
-        "--overview",
-        help="create an import overview sheet.",
-        default=False,
-        required=False,
-        action="store_true",
     )
     parser.add_argument(
         "--ext",
@@ -116,7 +98,7 @@ def main():
         sys.exit()
 
     # Basic import sheet with no external metadata mapping.
-    if args.csv and not args.over and not args.ext:
+    if args.csv and not args.ext:
         logger.info("writing full Archway import sheet without external metadata")
         import_csv = import_sheet_generator(
             droid_csv=args.csv,
@@ -128,7 +110,7 @@ def main():
         sys.exit()
 
     # Import sheet with external metadata mapping.
-    if args.csv and not args.over and args.ext:
+    if args.csv and args.ext:
         logger.info("writing full Archway import sheet with external metadata")
         import_csv = import_sheet_generator(
             droid_csv=args.csv,
@@ -139,14 +121,8 @@ def main():
         print(import_csv)
         sys.exit()
 
-    # Collections overview.
-    if args.csv and args.over:
-        logger.info("writing Archway overview sheet")
-        createImportOverview(droidcsv=args.csv, configfile=args.conf)
-        sys.exit()
-
     parser.print_help()
-    sys.exit(1)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
