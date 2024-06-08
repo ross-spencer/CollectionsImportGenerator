@@ -12,15 +12,18 @@ from typing import Final
 try:
     from ImportOverviewGenerator import ImportOverviewGenerator
     from ImportSheetGenerator import import_sheet_generator
+    from JsonTableSchema import JsonTableSchema
 except ModuleNotFoundError:
     try:
         from src.collections_import.ImportOverviewGenerator import (
             ImportOverviewGenerator,
         )
         from src.collections_import.ImportSheetGenerator import import_sheet_generator
+        from src.collections_import.JsonTableSchema import JsonTableSchema
     except ModuleNotFoundError:
         from collections_import.ImportOverviewGenerator import ImportOverviewGenerator
         from collections_import.ImportSheetGenerator import import_sheet_generator
+        from collections_import.JsonTableSchema import JsonTableSchema
 
 
 logger = logging.getLogger(__name__)
@@ -58,7 +61,11 @@ def main():
         description="Generate Archway Import Sheet and Rosetta Ingest CSV from DROID CSV Reports."
     )
     parser.add_argument(
-        "--csv", help="DROID CSV to read.", default=False, required=True
+        "--csv",
+        "-c",
+        help="DROID CSV to read.",
+        default=False,
+        required=False,
     )
     parser.add_argument(
         "--over",
@@ -82,13 +89,31 @@ def main():
         default=False,
         required=False,
     )
+    parser.add_argument(
+        "--list",
+        "-l",
+        help="list Collection CSV fields.",
+        default=False,
+        required=False,
+        action="store_true",
+    )
 
-    if len(sys.argv) == 1:
+    if len(sys.argv) < 2:
         parser.print_help()
         sys.exit(1)
 
     global args
     args = parser.parse_args()
+
+    if args.list:
+        with open(json_schema_file, "r", encoding="utf-8") as import_schema_file:
+            import_schema_json = import_schema_file.read()
+        import_schema = JsonTableSchema.JSONTableSchema(import_schema_json)
+        import_schema.as_csv_header()
+        print("fields described in collections schema:")
+        print("")
+        print(", ".join(import_schema.field_names))
+        sys.exit()
 
     # Basic import sheet with no external metadata mapping.
     if args.csv and not args.over and not args.ext:
