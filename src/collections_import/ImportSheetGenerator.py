@@ -115,17 +115,21 @@ class ImportSheetGenerator:
         )
         return None
 
-    def maptoimportschema(self, externalmapping=False):
+    def map_to_import_schema(self, externalmapping=False):
+        """Given a Collections import CSV schema, data to its fields row
+        by row and output a compatible CSV.
+        """
         if self.importschema is not False:
             f = open(self.importschema, "rb")
 
             importschemajson = f.read()
 
             importschema = JsonTableSchema.JSONTableSchema(importschemajson)
-            importschemadict = importschema.as_dict()
             importschemaheader = importschema.as_csv_header()
 
-            importcsv = importschemaheader + "\n"
+            logger.info("mapping to: '%s' fields", len(importschema.field_names))
+
+            importcsv = f"{importschemaheader}\n"
 
             for filerow in self.droidlist:
                 r = None
@@ -145,27 +149,25 @@ class ImportSheetGenerator:
                     filerow["LAST_MODIFIED"]
                 )
 
-                for column in importschemadict["fields"]:
+                for column_name in importschema.field_names:
                     fieldtext = ""
                     entry = False
 
                     if r is not None:
                         for val in r.rdict:
-                            if column["name"] == r.rdict[val]:
-                                if column["name"] != "Description":
+                            if column_name == r.rdict[val]:
+                                if column_name != "Description":
                                     val = self.splitns(val)
                                 fieldtext = val
-                                if column["name"] == "Title":
+                                if column_name == "Title":
                                     fieldtext = self.get_title(fieldtext)
                                 importcsv = importcsv + self.add_csv_value(fieldtext)
                                 entry = True
                                 break
 
                     if entry is not True:
-                        if self.config.has_option("droid mapping", column["name"]):
-                            droidfield = self.config.get(
-                                "droid mapping", column["name"]
-                            )
+                        if self.config.has_option("droid mapping", column_name):
+                            droidfield = self.config.get("droid mapping", column_name)
                             if droidfield == "FILE_PATH":
                                 dir = os.path.dirname(filerow["FILE_PATH"])
                                 fieldtext = self.get_path(dir)
@@ -188,19 +190,19 @@ class ImportSheetGenerator:
                             importcsv = importcsv + self.add_csv_value(fieldtext)
                             entry = True
 
-                    if self.config.has_option("static values", column["name"]):
+                    if self.config.has_option("static values", column_name):
                         importcsv = importcsv + self.add_csv_value(
-                            self.config.get("static values", column["name"])
+                            self.config.get("static values", column_name)
                         )
                         entry = True
 
                     # If we haven't years from an external source, add them
                     # here...
-                    if (column["name"] == "Open Year") and entry is not True:
+                    if (column_name == "Open Year") and entry is not True:
                         importcsv = importcsv + self.add_csv_value(yearopenclosed)
                         entry = True
 
-                    if (column["name"] == "Close Year") and entry is not True:
+                    if (column_name == "Close Year") and entry is not True:
                         importcsv = importcsv + self.add_csv_value(yearopenclosed)
                         entry = True
 
@@ -229,7 +231,7 @@ class ImportSheetGenerator:
             and self.importschema is not False
         ):
             self.droidlist = self.readDROIDCSV()
-            self.maptoimportschema(True)
+            self.map_to_import_schema(True)
             sys.stderr.write(
                 "External count: "
                 + str(len(self.externalCSV))
