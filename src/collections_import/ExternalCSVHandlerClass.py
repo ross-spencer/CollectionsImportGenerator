@@ -3,7 +3,6 @@
 import configparser as ConfigParser
 import logging
 import re
-import sys
 from datetime import datetime
 from os.path import exists
 
@@ -21,6 +20,17 @@ except ModuleNotFoundError:
         from collections_import.JsonTableSchema import JsonTableSchema
 
 logger = logging.getLogger(__name__)
+
+
+def convert_dates(date: str, year: bool = True):
+    """Return a year from a given date format."""
+    try:
+        dateobj = datetime.strptime(date, "%d/%m/%Y")
+        if year:
+            return dateobj.strftime("%Y")
+        return dateobj.strftime("%Y-%m-%d")
+    except ValueError:
+        return date
 
 
 class NewRow:
@@ -139,7 +149,7 @@ class ExternalCSVHandler:
                         if field in self.maphead:
                             data = external_row[field].strip()
                             if re.match(self.dates, data):
-                                data = self.__fixdates__(data)
+                                data = convert_dates(data)
                             if self.rowdict[field] == "Description":
                                 if data != "":
                                     nscount += 1
@@ -193,13 +203,3 @@ class ExternalCSVHandler:
             row.rdict = newrow
 
         return augmented_list
-
-    # Convert dates from one format to another...
-    def __fixdates__(self, dates):
-        if self.userdatepattern == "^[1-9]\d?\/\d{2}\/\d{4}$":
-            dateobj = datetime.strptime(dates, "%d/%m/%Y")
-            # return dateobj.strftime("%Y-%m-%d")
-            return dateobj.strftime("%Y")
-        else:
-            sys.stderr.write("No date handler configured for this string: " + dates)
-            return dates
