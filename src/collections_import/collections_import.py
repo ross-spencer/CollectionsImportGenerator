@@ -6,19 +6,23 @@ import argparse
 import logging
 import os
 import sys
+import tempfile
 import time
 from typing import Final
 
 try:
     from ImportSheetGenerator import import_sheet_generator
     from JsonTableSchema import JsonTableSchema
+    from schema_file import JSON_SCHEMA
 except ModuleNotFoundError:
     try:
         from src.collections_import.ImportSheetGenerator import import_sheet_generator
         from src.collections_import.JsonTableSchema import JsonTableSchema
+        from src.collections_import.schema_file import JSON_SCHEMA
     except ModuleNotFoundError:
         from collections_import.ImportSheetGenerator import import_sheet_generator
         from collections_import.JsonTableSchema import JsonTableSchema
+        from collections_import.schema_file import JSON_SCHEMA
 
 
 logger = logging.getLogger(__name__)
@@ -42,10 +46,12 @@ def main():
     if not os.path.exists(json_schema_file):
         # This should always be part of the package object.
         logger.error(
-            "schema file does not exist: '%s' exiting...",
+            "schema file does not exist: '%s' loading embedded resource",
             os.path.abspath(json_schema_file),
         )
-        sys.exit(1)
+        with tempfile.NamedTemporaryFile("w", delete=False) as schema_temp:
+            schema_temp.write(JSON_SCHEMA.strip())
+        json_schema_file = schema_temp.name
 
     parser = argparse.ArgumentParser(
         description="Generate Archway Import Sheet and Rosetta Ingest CSV from DROID CSV Reports."
@@ -122,6 +128,7 @@ def main():
         sys.exit()
 
     parser.print_help()
+    os.unlink(schema_temp.name)
     sys.exit(0)
 
 
