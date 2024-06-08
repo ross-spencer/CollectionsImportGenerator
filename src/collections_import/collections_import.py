@@ -118,23 +118,25 @@ def main():
     # Basic import sheet with no external metadata mapping.
     if args.csv and not args.over and not args.ext:
         logger.info("writing full Archway import sheet without external metadata")
-        import_sheet_generator(
+        import_csv = import_sheet_generator(
             droid_csv=args.csv,
             external_csv=None,
             import_schema=json_schema_file,
             config=args.conf,
         )
+        print(import_csv)
         sys.exit()
 
     # Import sheet with external metadata mapping.
     if args.csv and not args.over and args.ext:
         logger.info("writing full Archway import sheet with external metadata")
-        import_sheet_generator(
+        import_csv = import_sheet_generator(
             droid_csv=args.csv,
             external_csv=args.ext,
             import_schema=json_schema_file,
             config=args.conf,
         )
+        print(import_csv)
         sys.exit()
 
     # Collections overview.

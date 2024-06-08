@@ -98,7 +98,7 @@ def map_to_collection_schema(
     for column_name in importschema.field_names:
         fieldtext = ""
         entry = False
-        if not droid_only:
+        if not droid_only and external_csv_row:
             for entry_ in external_csv_row.rdict.keys():
                 field_name = external_csv_row.rdict.get(entry_)
                 if column_name != field_name:
@@ -115,7 +115,7 @@ def map_to_collection_schema(
             if config.has_option("droid mapping", column_name):
                 droidfield = config.get("droid mapping", column_name)
                 if droidfield == "FILE_PATH":
-                    dir = os.path.dirname(droid_row["FILE_PATH"])
+                    dir = droid_row["FILE_PATH"]
                     pathmask = config.get("additional values", "pathmask")
                     fieldtext = get_path(dir, pathmask)
                 if droidfield == "NAME":
@@ -320,4 +320,4 @@ def import_sheet_generator(droid_csv, external_csv, import_schema, config):
         config=config_obj,
         droid_only=droid_only,
     )
-    print(import_csv)
+    return import_csv
