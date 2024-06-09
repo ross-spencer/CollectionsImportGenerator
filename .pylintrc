@@ -23,6 +23,9 @@ ignore-patterns=
     ^(.+).html,
     ^(.+).htm,
     ^(.+).svg,
+    ^(.+).xlsx,
+    ^(.+).cfg,
+    ^(.+).json,
     ^\.,
 
 ignore-paths=
