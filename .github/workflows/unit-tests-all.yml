@@ -23,9 +23,6 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.11.0"
             experimental: true
-          - os: macos-latest
-            python-version: "3.11.0"
-            experimental: true
     steps:
       - name: "check out repository"
         uses: "actions/checkout@v2"
