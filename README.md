@@ -8,7 +8,7 @@ Based on the [archwayimportgenerator][archway-1] tool developed by
 
 [archway-1]: https://github.com/archives-new-zealand/archwayimportgenerator
 
-## Information
+## Usage Information
 
 The Collections Import Generator needs to be configured with an INI file and
 provided to the app as an argument.
@@ -67,6 +67,70 @@ python import_generator.py \
  --csv sheets/droid.csv \
  --conf sheets/conf.cfg > import.csv
 ```
+
+### Dependencies
+
+`pyproject.toml` and `requirements/requirements.txt` can be inspected for
+dependencies. If we have done our job correctly, you should find 🙅‍♀️ none!
+
+One of the goals of this project is to ensure that it can be installed in a
+secure operating environment and one of the ways to continue to keep a secure
+environment is to minimize the number of dependencies that are used which
+potentially open up more surface area for attack and misuse.
+
+No dependencies also means the scripts can be used (and installed with the
+`.whl` below) without the need to access the internet.
+
+### Installing from a Python Wheel
+
+The [Python wheel][wheel-1] `.whl` that is distributed the the repository can be
+installed using pip. Given a .whl file:
+
+[wheel-1]: https://realpython.com/python-wheels/
+
+```sh
+python -m pip install collections_import-0.0.0rc1-py3-none-any.whl
+```
+
+This makes it easy to run the script using aliases in the virtual environment
+e.g. with:
+
+```sh
+import_generator -h
+```
+
+or
+
+```sh
+import-generator -h
+```
+
+> NB. it is recommended to use a virtual environment locally, described below
+in developer instructions.
+
+#### Creating a .whl
+
+Two methods can be used to create a new wheel with changes to the code. The
+recommended approach is to use the release action in GitHub which is triggered
+when a new tag is created in the app.
+
+```sh
+git tag -a 0.0.x-rc.x -m 0.0.x-rc.x
+git push origin 0.0.x-rc.x
+```
+
+> it is recommended to use [semantic versioning][semver-1] to create version
+numbers. On top of `major.minor.path` the suffix `-rc.x` can be used to create
+release candidates for testing and signal to the user the utility is not ready
+to be used in production just yet.
+
+[semver-1]: https://semver.org/
+
+When the action completes a package and corresponding release will have been
+created and availabnle on the repository release page.
+
+`make package-source` can also be used to build locally and this package will
+be available in the `dist/` folder.
 
 ### Viewing CSV files
 
