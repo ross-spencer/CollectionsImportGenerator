@@ -281,7 +281,7 @@ def read_config(config):
     configured correctly.
     """
     config_obj = ConfigParser.RawConfigParser()
-    config_obj.read(config)
+    config_obj.read(config, encoding="utf-8")
     try:
         for section in (
             "droid mapping",

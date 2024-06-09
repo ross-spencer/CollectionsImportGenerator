@@ -68,6 +68,19 @@ python import_generator.py \
  --conf sheets/conf.cfg > import.csv
 ```
 
+### Troubleshooting
+
+#### Encoding
+
+If there are any problems running this script with UTF-8 characters you may need
+to configure your environment differently. Windows is most likely to raise
+issues. If so you can change your codepage and default encoding with:
+
+```sh
+chcp 65001
+set PYTHONIOENCODING=utf-8
+```
+
 ### Dependencies
 
 `pyproject.toml` and `requirements/requirements.txt` can be inspected for

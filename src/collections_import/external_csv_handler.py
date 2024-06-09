@@ -92,7 +92,7 @@ class ExternalCSVHandler:
         we need to convert an external CSV into an import sheet.
         """
         logger.info("mapping config being read from: '%s'", self.configfile)
-        self.config.read(self.configfile)
+        self.config.read(self.configfile, encoding="utf-8")
         self.pathmask = self._checkconfig(self.mapconfig, self.pathmask)
         self.checksumcol = self._checkconfig(self.mapconfig, self.checksumcolumn)
         self.pathcol = self._checkconfig(self.mapconfig, self.pathcolumn)

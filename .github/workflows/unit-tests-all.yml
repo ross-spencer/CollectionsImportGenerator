@@ -28,6 +28,9 @@ jobs:
         uses: "actions/checkout@v2"
         with:
           submodules: 'true'
+      - name: "set env"
+        run: |
+          echo "PYTHONIOENCODING=UTF-8" >> $GITHUB_ENV
       - name: "set up python ${{ matrix.python-version }}"
         uses: "actions/setup-python@v2"
         with:

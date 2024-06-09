@@ -37,11 +37,25 @@ logging.basicConfig(
 logging.Formatter.converter = time.gmtime
 
 
+def log_encoding():
+    """Diagnostics for debugging encoding issues."""
+
+    # pylint: disable=C0301
+
+    encoding = sys.stdout.encoding
+    logger.info("console encoding: %s", encoding)
+    if encoding != "utf-8":
+        logger.warning("encoding '%s' may result in the script failing", encoding)
+        logger.warning(
+            "please try `set PYTHONIOENCODING=utf-8` (Windows) `export PYTHONIOENCODING=utf-8` (Linux)"
+        )
+
+
 def main():
     """Primary entry point for this script."""
 
+    log_encoding()
     schema_filename: Final[str] = "archway-import-schema.json"
-
     json_schema_file = os.path.join("schema", schema_filename)
     if not os.path.exists(json_schema_file):
         # This should always be part of the package object.

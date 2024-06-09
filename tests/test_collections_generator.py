@@ -1,6 +1,6 @@
 """Tests template."""
 
-# pylint: disable=C0103
+# pylint: disable=C0103,R0801
 
 from typing import Final
 
@@ -378,10 +378,10 @@ def test_basic_output_and_mapping(tmp_path):
     config_file = collection / "config.cfg"
     json_schema_file = collection / "schema.json"
 
-    droid_file.write_text(droid_csv.strip())
-    external_md_file.write_text(external_csv.strip())
-    config_file.write_text(conf.strip())
-    json_schema_file.write_text(json_schema.strip())
+    droid_file.write_text(droid_csv.strip(), encoding="utf-8")
+    external_md_file.write_text(external_csv.strip(), encoding="utf-8")
+    config_file.write_text(conf.strip(), encoding="utf-8")
+    json_schema_file.write_text(json_schema.strip(), encoding="utf-8")
 
     import_csv = import_sheet_generator(
         droid_csv=droid_file,
