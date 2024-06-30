@@ -1,0 +1,24 @@
+[project]
+
+name = "collections-import"
+dynamic = ["version"]
+requires-python = ">=3.9"
+
+dependencies = [
+  # e.g. "package1==6.0.0",
+]
+
+[project.scripts]
+import-generator = "collections_import.collections_import:main"
+import_generator = "collections_import.collections_import:main"
+
+[build-system]
+requires = ["setuptools>=69.5.1", "wheel", "setuptools_scm[toml]>=7.1.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+
+[tool.setuptools.package-data]
+"*" = [
+    "archway-import-schema.json",
+]
