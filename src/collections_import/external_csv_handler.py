@@ -113,9 +113,8 @@ class ExternalCSVHandler:
             self.import_schema_headers = importschema.field_names
 
     def get_mappings(self):
-        """TODO... map something...
-        Using the CSV headers, see if there is an entry in the config file
-        for the information we're receiving in this class.
+        """Using the CSV headers, see if there is an entry in the
+        config file for the information we're receiving in this class.
         """
         for header in self.import_schema_headers:
             if not self.config.has_option(self.mapping, header):
